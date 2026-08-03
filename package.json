@@ -1,0 +1,9 @@
+{
+  "name": "under-the-hood",
+  "private": true,
+  "type": "module",
+  "description": "Complex engineering, explained for everyone — with runnable code.",
+  "engines": {
+    "node": ">=20"
+  }
+}

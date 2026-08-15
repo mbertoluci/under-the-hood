@@ -16,6 +16,15 @@ Every episode ships with **runnable code**: benchmarks, demos, and experiments y
 | 02 | **Your code gets faster while it runs** — the JIT pipeline | [`episodes/02-jit-pipeline`](episodes/02-jit-pipeline) | soon |
 | 03 | **Write code the engine can bet on** — shapes, inline caches & array internals | [`episodes/03-shapes-and-arrays`](episodes/03-shapes-and-arrays) | soon |
 | 04 | **Stop guessing, start measuring** — when optimization actually matters | [`episodes/04-measure-dont-guess`](episodes/04-measure-dont-guess) | soon |
+| 05 | **How V8 cleans up your mess** — the garbage collector (season finale) | [`episodes/05-garbage-collector`](episodes/05-garbage-collector) | soon |
+
+## Season 2 — Node.js, explained like everyday life
+
+Shorter episodes, one idea at a time, everyday analogies first.
+
+| # | Episode | Code | Post |
+|---|---------|------|------|
+| 06 | **Node.js is a bank with ONE teller** — the event loop | [`episodes/06-event-loop-bank`](episodes/06-event-loop-bank) | soon |
 
 ## Running the demos
 

@@ -27,6 +27,7 @@ Shorter episodes, one idea at a time, everyday analogies first.
 | 06 | **Node.js is a bank with ONE teller** — the event loop | [`episodes/06-event-loop-bank`](episodes/06-event-loop-bank) | soon |
 | 07 | **The teller's secret priority notes** — nextTick, promises & why setTimeout(0) runs last | [`episodes/07-priority-notes`](episodes/07-priority-notes) | soon |
 | 08 | **One slow customer freezes the whole bank** — blocking the event loop & the Promise myth | [`episodes/08-one-slow-customer`](episodes/08-one-slow-customer) | soon |
+| 09 | **The bank hires a second teller** — Worker Threads, the real fix for CPU work | [`episodes/09-second-teller`](episodes/09-second-teller) | soon |
 
 ## Running the demos
 

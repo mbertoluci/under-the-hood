@@ -28,6 +28,7 @@ Shorter episodes, one idea at a time, everyday analogies first.
 | 07 | **The teller's secret priority notes** — nextTick, promises & why setTimeout(0) runs last | [`episodes/07-priority-notes`](episodes/07-priority-notes) | soon |
 | 08 | **One slow customer freezes the whole bank** — blocking the event loop & the Promise myth | [`episodes/08-one-slow-customer`](episodes/08-one-slow-customer) | soon |
 | 09 | **The bank hires a second teller** — Worker Threads, the real fix for CPU work | [`episodes/09-second-teller`](episodes/09-second-teller) | soon |
+| 10 | **The receipt that saves your Friday deploy** — lockfiles, wish vs receipt | [`episodes/10-the-receipt`](episodes/10-the-receipt) | soon |
 
 ## Running the demos
 

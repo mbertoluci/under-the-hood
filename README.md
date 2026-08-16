@@ -30,6 +30,7 @@ Shorter episodes, one idea at a time, everyday analogies first.
 | 09 | **The bank hires a second teller** — Worker Threads, the real fix for CPU work | [`episodes/09-second-teller`](episodes/09-second-teller) | soon |
 | 10 | **The receipt that saves your Friday deploy** — lockfiles, wish vs receipt | [`episodes/10-the-receipt`](episodes/10-the-receipt) | soon |
 | 11 | **You have 40 copies of the same book** — node_modules vs the pnpm store | [`episodes/11-forty-copies`](episodes/11-forty-copies) | soon |
+| 12 | **The ghost package you never installed** — phantom dependencies | [`episodes/12-ghost-package`](episodes/12-ghost-package) | soon |
 
 ## Running the demos
 

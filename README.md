@@ -29,6 +29,7 @@ Shorter episodes, one idea at a time, everyday analogies first.
 | 08 | **One slow customer freezes the whole bank** — blocking the event loop & the Promise myth | [`episodes/08-one-slow-customer`](episodes/08-one-slow-customer) | soon |
 | 09 | **The bank hires a second teller** — Worker Threads, the real fix for CPU work | [`episodes/09-second-teller`](episodes/09-second-teller) | soon |
 | 10 | **The receipt that saves your Friday deploy** — lockfiles, wish vs receipt | [`episodes/10-the-receipt`](episodes/10-the-receipt) | soon |
+| 11 | **You have 40 copies of the same book** — node_modules vs the pnpm store | [`episodes/11-forty-copies`](episodes/11-forty-copies) | soon |
 
 ## Running the demos
 

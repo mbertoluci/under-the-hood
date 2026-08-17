@@ -31,6 +31,7 @@ Shorter episodes, one idea at a time, everyday analogies first.
 | 10 | **The receipt that saves your Friday deploy** — lockfiles, wish vs receipt | [`episodes/10-the-receipt`](episodes/10-the-receipt) | soon |
 | 11 | **You have 40 copies of the same book** — node_modules vs the pnpm store | [`episodes/11-forty-copies`](episodes/11-forty-copies) | soon |
 | 12 | **The ghost package you never installed** — phantom dependencies | [`episodes/12-ghost-package`](episodes/12-ghost-package) | soon |
+| 13 | **Serving 2 GB with ~50 MB of RAM** — streams, the pool and the straw | [`episodes/13-the-straw`](episodes/13-the-straw) | soon |
 
 ## Running the demos
 

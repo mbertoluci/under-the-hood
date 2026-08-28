@@ -33,6 +33,14 @@ Shorter episodes, one idea at a time, everyday analogies first.
 | 12 | **The ghost package you never installed** — phantom dependencies | [`episodes/12-ghost-package`](episodes/12-ghost-package) | soon |
 | 13 | **Serving 2 GB with ~50 MB of RAM** — streams, the pool and the straw | [`episodes/13-the-straw`](episodes/13-the-straw) | soon |
 
+## Season 3 — AI systems that survive production
+
+The AI track: how agents behave like real production systems, not demos.
+
+| # | Episode | Code | Post |
+|---|---------|------|------|
+| 14 | **The Ledger** — durable agents that survive a `kill -9` (event sourcing & Temporal) | [`episodes/14-the-ledger`](episodes/14-the-ledger) | soon |
+
 ## Running the demos
 
 ```bash

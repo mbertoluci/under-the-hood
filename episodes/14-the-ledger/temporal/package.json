@@ -1,0 +1,16 @@
+{
+  "name": "the-ledger-temporal",
+  "private": true,
+  "type": "module",
+  "description": "Production version of The Ledger — durable agents on Temporal.",
+  "scripts": {
+    "worker": "node worker.js",
+    "start": "node client.js"
+  },
+  "dependencies": {
+    "@temporalio/activity": "^1.11.0",
+    "@temporalio/client": "^1.11.0",
+    "@temporalio/worker": "^1.11.0",
+    "@temporalio/workflow": "^1.11.0"
+  }
+}

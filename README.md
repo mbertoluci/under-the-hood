@@ -41,6 +41,7 @@ The AI track: how agents behave like real production systems, not demos.
 |---|---------|------|------|
 | 14 | **The Ledger** — durable agents that survive a `kill -9` (event sourcing & Temporal) | [`episodes/14-the-ledger`](episodes/14-the-ledger) | soon |
 | 15 | **The Dice Roll** — don't let the AI decide what only code should decide (AI proposes, code decides) | [`episodes/15-the-dice-roll`](episodes/15-the-dice-roll) | soon |
+| 16 | **Decide vs Guarantee** — LangGraph decides which tool, Temporal guarantees it ran once (tool control) | [`episodes/16-decide-vs-guarantee`](episodes/16-decide-vs-guarantee) | soon |
 
 ## Running the demos
 

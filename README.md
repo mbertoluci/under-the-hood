@@ -43,6 +43,14 @@ The AI track: how agents behave like real production systems, not demos.
 | 15 | **The Dice Roll** — don't let the AI decide what only code should decide (AI proposes, code decides) | [`episodes/15-the-dice-roll`](episodes/15-the-dice-roll) | soon |
 | 16 | **Decide vs Guarantee** — LangGraph decides which tool, Temporal guarantees it ran once (tool control) | [`episodes/16-decide-vs-guarantee`](episodes/16-decide-vs-guarantee) | soon |
 
+## Curso de AI Engineering (PT-BR)
+
+Free AI Engineering course in Portuguese, on YouTube (Monan Bertoluci). Code for the lessons lives in [`curso/`](curso).
+
+| Aulas | Série | Código |
+|-------|-------|--------|
+| 07-09 | **O agente de suporte**: o modelo propõe uma chamada de ferramenta, o seu código decide (Python, só biblioteca padrão) | [`curso/agente-de-suporte`](curso/agente-de-suporte) |
+
 ## Running the demos
 
 ```bash

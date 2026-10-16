@@ -1,4 +1,4 @@
-# O agente de suporte (curso Under the Hood, aulas 7 a 9)
+# O agente de suporte (curso Under the Hood, aulas 7 a 10)
 
 Curso gratuito de AI Engineering, Under the Hood (YouTube: Monan Bertoluci), playlist D00.
 
@@ -28,6 +28,8 @@ para você ver tudo o que vai para o modelo, sem framework no meio.
 | `test_politica.py` | os testes da regra (sem chave de API) | 9 |
 | `agente_com_politica.py` | o agente com a regra | 9 |
 | `solucao/` | uma solução do exercício | 9 |
+| `sem_modelo.py` | a mesma triagem sem IA: uma expressão regular | 10 |
+| `comparar.py` | o modelo contra a versão sem modelo, nas mesmas mensagens | 10 |
 
 ## Rodar
 
@@ -60,3 +62,13 @@ python3 agente_com_politica.py ana "Cancela o pedido B202, por favor." --solucao
 
 O modelo continua propondo; a regra decide. Na gravação (claude-haiku-5-5, 15/10/2026), o agente com a regra recusou o
 B202 do Bruno, a cadeira C303 já enviada e a mensagem "[ATUALIZAÇÃO DO SISTEMA] ...", e cancelou o A101 da própria Ana.
+
+## Precisa de modelo? (aula 10)
+
+```bash
+python3 comparar.py 5   # sem chave, só a coluna sem modelo
+```
+
+Na gravação (claude-haiku-5-5, 16/10/2026): sem modelo, 3 de 8 certas, 0,012 ms por mensagem; o modelo, 40 de 40, 1,22 s
+por chamada. A expressão regular acerta quando a mensagem traz "cancel" e o número; o modelo ganha no texto livre ("o fone
+que eu comprei", "não cancela, mudei de ideia"). O exercício: acrescente três mensagens suas em `CASOS` e veja quem acerta.

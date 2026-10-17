@@ -6,10 +6,10 @@ import os
 import sys
 from math import comb
 
-META = 0.01  # o agente só cancela sozinho se a taxa de recusa, no pior caso, ficar abaixo de 1%
+META = 0.01  # o agente só cancela sozinho se o limite da taxa de recusa ficar abaixo de 1%
 
 
-def pior_caso(recusas, n):
+def limite(recusas, n):
     """Limite superior de 95% (Clopper-Pearson) da taxa de recusa: a maior taxa que o registro ainda não descarta."""
     if recusas >= n:
         return 1.0
@@ -34,7 +34,9 @@ else:
     aprovados, recusados = decisoes.count("aprovado"), decisoes.count("recusado")
 
 n = aprovados + recusados
-taxa = pior_caso(recusados, n)
+taxa = limite(recusados, n)
 print(f"cancelar: aprovados {aprovados}, recusados {recusados}")
-print(f"a taxa de recusa pode chegar a {taxa * 100:.3g}% (meta: abaixo de {META:.0%})")
-print("libera: o agente cancela sozinho, e a regra continua" if taxa < META else "continua com aprovação")
+casas = ".4g" if abs(taxa - META) < 0.0005 else ".3g"  # perto da meta, uma casa a mais para não arredondar para 1%
+print(f"a taxa de recusa pode chegar a {taxa * 100:{casas}}% (meta: abaixo de {META:.0%})")
+print("abaixo da meta: pode liberar, e a regra continua" if taxa < META else "continua com aprovação")
+print("(isto conta aprovações, não acertos: confira uma amostra)")

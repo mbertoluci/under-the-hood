@@ -9,6 +9,6 @@ def pode_cancelar(cliente, pedido_id):
     Regras:
     1. o pedido existe;
     2. o pedido é do cliente logado;
-    3. o pedido ainda não foi enviado.
+    3. o pedido está aguardando envio (qualquer outro status: recusa).
     """
     raise NotImplementedError("escreva a regra aqui e rode: python test_politica.py")

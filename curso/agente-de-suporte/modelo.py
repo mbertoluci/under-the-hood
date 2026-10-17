@@ -7,6 +7,7 @@ import urllib.request
 
 URL = "https://api.anthropic.com/v1/messages"
 MODELO = os.environ.get("MODELO", "claude-haiku-5-5")
+SIMULADO = not os.environ.get("ANTHROPIC_API_KEY")
 
 
 def propor(system, mensagem, ferramentas):

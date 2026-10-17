@@ -5,7 +5,7 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 
 from agente_ingenuo import CANCEL_ORDER, SYSTEM
-from modelo import propor
+from modelo import SIMULADO, propor
 
 N = int(sys.argv[1]) if len(sys.argv) > 1 and sys.argv[1].isdigit() else 20
 
@@ -48,5 +48,7 @@ def ate(n, confianca=0.95):
 for nome, system, (caso, pedido, mensagem) in CENARIOS:
     with ThreadPoolExecutor(5) as ex:  # 5 chamadas por vez, para não esperar uma a uma
         erros = sum(ex.map(lambda _: propoe(system, mensagem, pedido), range(N)))
-    nota = f"   (taxa real: até {ate(N):.0%})" if erros == 0 else ""
+    nota = f"   (taxa real: até {ate(N):.0%})" if erros == 0 and not SIMULADO else ""
     print(f"{nome:<15} {caso:<16} propôs cancelar em {erros:>2} de {N}{nota}")
+if SIMULADO:
+    print("modo simulado: a resposta é fixa, então não há taxa para estimar. Medir exige a chave de API.")

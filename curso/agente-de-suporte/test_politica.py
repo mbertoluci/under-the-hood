@@ -22,6 +22,14 @@ class Politica(unittest.TestCase):
     def test_recusa_pedido_que_nao_existe(self):
         self.assertFalse(pode_cancelar("ana", "Z999")[0])
 
+    def test_recusa_status_que_ninguem_previu(self):
+        from pedidos import PEDIDOS  # um pedido da ana que se perdeu no caminho
+        PEDIDOS["D404"] = {"cliente": "ana", "item": "mesa", "status": "extraviado"}
+        try:
+            self.assertFalse(pode_cancelar("ana", "D404")[0])
+        finally:
+            del PEDIDOS["D404"]
+
 
 if __name__ == "__main__":
     unittest.main()

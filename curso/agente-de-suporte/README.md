@@ -1,4 +1,4 @@
-# O agente de suporte (curso Under the Hood, aulas 7 a 10)
+# O agente de suporte (curso Under the Hood, aulas 7 a 11)
 
 Curso gratuito de AI Engineering, Under the Hood (YouTube: Monan Bertoluci), playlist D00.
 
@@ -30,6 +30,8 @@ para você ver tudo o que vai para o modelo, sem framework no meio.
 | `solucao/` | uma solução do exercício | 9 |
 | `sem_modelo.py` | a mesma triagem sem IA: uma expressão regular | 10 |
 | `comparar.py` | o modelo contra a versão sem modelo, nas mesmas mensagens | 10 |
+| `aprovacao.py` | o agente com a regra e a aprovação de uma pessoa antes do efeito | 11 |
+| `autonomia.py` | lê o registro de aprovações e diz se a pessoa já pode parar de aprovar | 11 |
 
 ## Rodar
 
@@ -72,3 +74,17 @@ python3 comparar.py 5   # sem chave, só a coluna sem modelo
 Na gravação (claude-haiku-5-5, 16/10/2026): sem modelo, 3 de 8 certas, 0,012 ms por mensagem; o modelo, 40 de 40, 1,22 s
 por chamada. A expressão regular acerta quando a mensagem traz "cancel" e o número; o modelo ganha no texto livre ("o fone
 que eu comprei", "não cancela, mudei de ideia"). O exercício: acrescente três mensagens suas em `CASOS` e veja quem acerta.
+
+## Quem aperta o botão (aula 11)
+
+```bash
+python3 aprovacao.py ana "Cancela o pedido A101, por favor." --solucao   # responda s, ou Enter para não
+python3 autonomia.py           # lê o aprovacoes.csv que o aprovacao.py gravou
+python3 autonomia.py 95 5      # ou passe os números: 95 aprovados, 5 recusados
+```
+
+A regra vem primeiro e recusa o que não pode (B202 do Bruno, C303 já enviado) sem nem perguntar. O que ela deixa passar
+vai para uma pessoa, e Enter quer dizer não. Cada decisão fica em `aprovacoes.csv`. O `autonomia.py` calcula até onde a
+taxa de recusa pode ir (limite de 95%, Clopper-Pearson) e só libera o agente para cancelar sozinho abaixo de 1%: 95
+aprovados em 100 ainda deixam até 11,3%; 368 seguidos, sem recusa, chegam a 0,997%. Liberar tira a pessoa, não a regra.
+O exercício: decida alguns pedidos no `aprovacao.py`, recuse um, e veja quantas aprovações seguidas faltam.

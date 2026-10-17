@@ -4,3 +4,5 @@ node_modules/
 isolate-*.log
 *.cpuprofile
 .clinic/
+curso/agente-de-suporte/aprovacoes.csv
+__pycache__/

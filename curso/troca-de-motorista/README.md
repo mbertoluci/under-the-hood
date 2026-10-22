@@ -1,4 +1,4 @@
-# Troca de motorista: quem manda no seu agente (curso Under the Hood, D12, aula 1)
+# Troca de motorista: quem manda no seu agente (curso Under the Hood, D12, aulas 1 e 2)
 
 Curso gratuito de AI Engineering, Under the Hood (YouTube: Monan Bertoluci), playlist D12: política, autoridade e
 aprovação humana.
@@ -34,7 +34,12 @@ O código usa só a biblioteca padrão do Python, para você ver tudo o que vai 
 | `test_autenticacao.py` | os 6 testes do token (sem chave de API) |
 | `autoridade.py` | **o exercício:** a regra que decide se um sinal autoriza a proposta |
 | `test_autoridade.py` | os 7 testes da regra (sem chave de API) |
-| `solucao/` | uma solução do exercício |
+| `dia.py` | aula 2: os 41 pedidos do dia da despachante, o catálogo de níveis e a atualização do B-17 às 17:25 |
+| `despacho_ingenuo.py` | aula 2: pergunta tudo, mostra só o id do plano e guarda a aprovação pelo id |
+| `aprovacao.py` | **o exercício da aula 2:** precisa_perguntar, cartao e vale |
+| `test_aprovacao.py` | os 8 testes da aprovação (sem chave de API) |
+| `despacho.py` | aula 2: o mesmo dia com as três perguntas |
+| `solucao/` | uma solução de cada exercício |
 
 ## Rodar
 
@@ -95,8 +100,52 @@ ambiente ou num cofre, e o token tem validade curta.
 O botão, com o token, prova que quem apertou estava logado na conta da Maria naquele momento. Ele não prova a
 identidade civil da pessoa: alguém pode ter pegado o celular dela desbloqueado.
 
+## Aula 2: a aprovação que ninguém lê (sem chave)
+
+A Maria autorizou com o botão. Antes de executar, a despachante da transportadora também aprova. Só que ela recebe 41
+pedidos no dia, todos iguais: "aprovar o plano B-17? [s/N]". E às 17:25, depois da aprovação, o Carlos avisa que não
+pode e o replanejador atualiza o mesmo B-17 para o Diego.
+
+```bash
+yes s | python3 despacho_ingenuo.py   # 41 perguntas, 41 "s"; às 17:40 executa o Diego, que ninguém viu
+```
+
+Não é descuido de uma pessoa. Num estudo da Anthropic com 1.053 testadores pagos, a revisão humana pegou 13,6% dos
+comandos perigosos (143 de 1.053), e a taxa caiu de cerca de 17% no começo da sessão para cerca de 5% depois de 50
+pedidos ou mais. Ressalvas da própria fonte: ambiente de teste, um comando perigoso por sessão, e quem participou
+sabia que estava sendo avaliado, sem saber o quê.
+
+Uma aprovação só vale pelo que a pessoa viu. O exercício são três perguntas, uma função cada, em `aprovacao.py`:
+
+1. **Precisava perguntar?** `precisa_perguntar(plano)`: o que o catálogo deixa a regra fazer sozinha (aviso por
+   template, reserva que expira) não vai para a pessoa. Ação fora do catálogo vai.
+2. **Ela vê o que muda?** `cartao(plano, carga)`: o antes e o depois, só do que muda.
+3. **O que executa é o que ela viu?** `vale(aprovacao, plano, carga)`: a aprovação guarda o resumo (SHA-256) do texto
+   do cartão. Na hora de executar, o cartão é montado de novo; se o resumo não bate, não executa e pergunta de novo.
+   Uma versão nova do plano com o mesmo cartão continua valendo.
+
+```bash
+python3 test_aprovacao.py             # sem as funções: FAILED (errors=8)
+python3 test_aprovacao.py --solucao   # a solução: 8 testes, OK
+yes s | python3 despacho.py --solucao # 38 de 41 a regra faz sozinha; o B-17 mudou e volta para a despachante
+```
+
+A solução errada mais provável guarda a aprovação pelo id do plano. Ela passa em 7 testes e cai em "o plano mudou
+depois da aprovação". Listar só a ação perigosa (em vez do que a regra pode fazer sozinha) cai em "ação fora do
+catálogo", e guardar o resumo do plano inteiro cai em "versão nova com o mesmo cartão".
+
+Cuidados:
+- Menos perguntas não deixa ninguém atento. Tira o motivo de clicar sem ler, e só.
+- Aprovação muito rápida, em série, é sinal para conferir uma amostra e melhorar o cartão, nunca para dar mais
+  autonomia ao agente.
+- A autorização da Maria (aula 1) tem o mesmo furo: "para esta proposta" pelo id não basta. No case, as duas
+  aprovações valem para o mesmo resumo.
+- O exemplo guarda as aprovações na memória do processo. Onde elas ficam quando o servidor reinicia é a aula 3.
+
 ## Fontes
 
 - O case da transportadora, a arquitetura e os testes de política são do curso (dados fictícios).
 - Anthropic, "The anatomy of effective commerce agents": "a prompt rule is one injection or one bad sample away from
   being skipped".
+- Anthropic, "Auto mode is now the default in Claude Code" (ago/2026), o estudo com 1.053 testadores:
+  https://claude.com/resources/articles/auto-mode-default-in-claude-code

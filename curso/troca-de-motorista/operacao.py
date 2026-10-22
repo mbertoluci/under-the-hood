@@ -24,3 +24,9 @@ def trocar_motorista(proposta):
 
 def mostrar():
     print(f"  {CARGA['id']}  {CARGA['item']}  entrega {CARGA['entrega']}  motorista: {CARGA['motorista']} ({CARGA['veiculo']})")
+
+
+# Aula 2: a impressão digital de um texto (SHA-256). Mudou uma letra, muda o resumo inteiro.
+def resumo(texto):
+    import hashlib
+    return hashlib.sha256(texto.encode()).hexdigest()[:16]

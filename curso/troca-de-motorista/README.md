@@ -1,4 +1,4 @@
-# Troca de motorista: quem manda no seu agente (curso Under the Hood, D12, aulas 1 e 2)
+# Troca de motorista: quem manda no seu agente (curso Under the Hood, D12, aulas 1, 2 e 3)
 
 Curso gratuito de AI Engineering, Under the Hood (YouTube: Monan Bertoluci), playlist D12: política, autoridade e
 aprovação humana.
@@ -39,6 +39,10 @@ O código usa só a biblioteca padrão do Python, para você ver tudo o que vai 
 | `aprovacao.py` | **o exercício da aula 2:** precisa_perguntar, cartao e vale |
 | `test_aprovacao.py` | os 8 testes da aprovação (sem chave de API) |
 | `despacho.py` | aula 2: o mesmo dia com as três perguntas |
+| `registro.py` | **o exercício da aula 3:** pedir, responder e situacao, com a tabela do SQLite |
+| `test_registro.py` | os 9 testes do registro (sem chave de API) |
+| `servidor.py` | aula 3: o servidor de aprovações, com a espera na memória (`--memoria`) ou no disco |
+| `reinicio.py` | aula 3: derruba o servidor com kill -9 um minuto depois do cartão e sobe de novo |
 | `solucao/` | uma solução de cada exercício |
 
 ## Rodar
@@ -142,6 +146,49 @@ Cuidados:
   aprovações valem para o mesmo resumo.
 - O exemplo guarda as aprovações na memória do processo. Onde elas ficam quando o servidor reinicia é a aula 3.
 
+## Aula 3: a aprovação que o servidor esqueceu (sem chave)
+
+17:10, o cartão do B-17 sai para o celular. 17:11, um deploy reinicia o servidor. 17:12, a supervisora recusa, e
+17:13 a despachante aprova. Se a espera estava na memória do processo, o servidor novo não conhece o B-17: as duas
+respostas são ignoradas, a carga fica sem motorista, e ninguém fica sabendo.
+
+```bash
+python3 reinicio.py --memoria     # o kill -9 apaga a espera; as respostas viram "pedido desconhecido"
+```
+
+Esperar por uma pessoa é um registro no disco, não uma variável na memória. O exercício são três regras, uma função
+cada, em `registro.py` (SQLite, da biblioteca padrão):
+
+1. **Grava antes de avisar.** `pedir(db, pedido, avisar)`: grava, confirma (commit) e só então manda o cartão. Se
+   cair antes de avisar, o pedido está no disco e o servidor reenvia quando voltar. Se avisasse antes de gravar, a
+   pessoa poderia responder a um pedido que o servidor não conhece.
+2. **A primeira resposta vence.** `responder(db, pedido_id, quem, decisao, agora)`: a condição fica no próprio
+   `UPDATE ... WHERE estado = 'pendente' AND ? < expira`, então o banco confere e grava no mesmo passo. A resposta
+   gravada nunca muda; quem responde depois fica sabendo quem decidiu antes.
+3. **Silêncio não é consentimento.** `situacao(db, pedido_id, agora)`: passou do prazo sem resposta, é "expirado", e
+   só "aprovo" executa.
+
+```bash
+python3 test_registro.py                 # sem as funções: FAILED (errors=9)
+python3 test_registro.py --solucao       # a solução: 9 testes, OK
+python3 reinicio.py --solucao            # o B-17 volta do disco; a recusa das 17:12 vence a aprovação das 17:13
+python3 reinicio.py --solucao --silencio # ninguém responde: às 17:40 expira, não executa e avisa a supervisora
+sqlite3 aprovacoes.db "select * from pedidos"   # o registro, depois de rodar o reinicio.py
+```
+
+A solução errada mais provável grava a resposta com `UPDATE ... WHERE id = ?`, sem conferir o estado. Ela passa em 7
+testes: a última resposta vence (a aprovação das 17:13 apaga a recusa das 17:12), e uma resposta depois do prazo
+ainda vale. Avisar antes de gravar e esquecer o commit também caem, cada um em 2 testes.
+
+Cuidados:
+- Conferir com um `SELECT` e depois gravar com um `UPDATE` sem condição passa nos testes, que rodam um de cada vez,
+  mas abre uma janela entre os dois passos para outra resposta entrar. Deixe a condição no `UPDATE`.
+- O reenvio depois do reinício pode mandar o mesmo cartão duas vezes. Não faz mal, porque a primeira resposta vence.
+- O SQLite aceita um escritor por vez no arquivo. Para muitos servidores escrevendo juntos, o mesmo desenho vai para um
+  banco com servidor, como o PostgreSQL.
+- O prazo aqui é o horário do despacho. No Hermes (Nous Research), o tempo padrão para responder é 300 s, porque 60 s
+  "proved too tight on Telegram/Discord".
+
 ## Fontes
 
 - O case da transportadora, a arquitetura e os testes de política são do curso (dados fictícios).
@@ -149,3 +196,9 @@ Cuidados:
   being skipped".
 - Anthropic, "Auto mode is now the default in Claude Code" (ago/2026), o estudo com 1.053 testadores:
   https://claude.com/resources/articles/auto-mode-default-in-claude-code
+- Nous Research, Hermes Agent (MIT), a espera de aprovação como `threading.Event` e "Silence is not consent":
+  https://github.com/NousResearch/hermes-agent/blob/main/tools/approval_gateway_wait.py e `tools/approval.py`
+  (lido no commit c8301ea6, 03/10/2026).
+- Jim Gray, "The Transaction Concept: Virtues and Limitations" (VLDB, 1981): a transação como unidade que acontece
+  inteira ou não acontece.
+- SQLite, "Atomic Commit In SQLite": https://www.sqlite.org/atomiccommit.html

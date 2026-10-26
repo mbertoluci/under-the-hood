@@ -43,6 +43,9 @@ O código usa só a biblioteca padrão do Python, para você ver tudo o que vai 
 | `test_registro.py` | os 9 testes do registro (sem chave de API) |
 | `servidor.py` | aula 3: o servidor de aprovações, com a espera na memória (`--memoria`) ou no disco |
 | `reinicio.py` | aula 3: derruba o servidor com kill -9 um minuto depois do cartão e sobe de novo |
+| `revalidar.py` | **o exercício da aula 4:** pode_executar, as três perguntas na hora do despacho |
+| `test_revalidar.py` | os 8 testes da revalidação (sem chave de API) |
+| `fim_de_tarde.py` | aula 4: a Maria autoriza às 17:00, perde o acesso às 17:30, e o despacho é às 17:40 |
 | `solucao/` | uma solução de cada exercício |
 
 ## Rodar
@@ -189,6 +192,44 @@ Cuidados:
 - O prazo aqui é o horário do despacho. No Hermes (Nous Research), o tempo padrão para responder é 300 s, porque 60 s
   "proved too tight on Telegram/Discord".
 
+## Aula 4: a autorização de quem já saiu (sem chave)
+
+17:00, a Maria aperta "autorizo" no app, com o token da aula 1, que vale uma hora. A autorização é gravada: B-17,
+maria, solicitante. 17:30, a Maria sai da XPTO, e o acesso dela é removido do cadastro. 17:40, a hora do despacho. O
+token dela ainda vale até as 18:00, e a linha gravada ainda diz "solicitante".
+
+```bash
+python3 fim_de_tarde.py --ingenuo   # confia no que foi gravado às 17:00: executa
+```
+
+Uma autorização vale pelo que é verdade agora, não pelo que era verdade quando foi dada. O exercício é uma função,
+`pode_executar(autorizacao, plano, agora)` em `revalidar.py`, chamada logo antes do efeito, com três perguntas:
+
+1. **O conteúdo é o que ela viu?** O resumo do conteúdo de agora é o gravado (aula 2). Versão nova com o mesmo
+   conteúdo continua valendo.
+2. **Quem autorizou ainda pode?** O papel dela no cadastro de agora, não o papel gravado nem o token. A linha gravada
+   diz quem decidiu e quando; quem pode decidir, pergunte agora.
+3. **O mundo ainda é o que era?** A carga ainda espera motorista, e o motorista está livre (ou já nesta carga).
+
+```bash
+python3 test_revalidar.py                  # sem a função: FAILED (errors=8)
+python3 test_revalidar.py --solucao        # a solução: 8 testes, OK
+python3 fim_de_tarde.py --solucao          # não executa: a maria não pode mais autorizar
+python3 fim_de_tarde.py --solucao --escala # a Maria continua, mas o Carlos foi para outra carga às 17:35
+```
+
+A solução errada mais provável confere o conteúdo e o mundo, mas lê o papel da linha gravada. Ela passa em 6 testes e
+cai nos dois da Maria. Conferir só se a Maria ainda existe no cadastro passa em 7: cai quando ela continua, mas só
+para consulta.
+
+Cuidados:
+- Perguntar de novo na hora do efeito não fecha a janela inteira: entre a pergunta e o efeito ainda cabe uma mudança.
+  O OpenClaw pede que essa conferência fique no mesmo passo síncrono do efeito ("rechecking only after the mutation
+  returns is too late"). Num banco, isso vira a condição dentro do próprio `UPDATE`, como na aula 3.
+- O JWT não tem como ser cancelado antes de vencer. Por isso o token prova o login, e o cadastro de agora decide a
+  autoridade. Validade curta ajuda; não substitui a pergunta.
+- Quando não executa, o pedido volta para a despachante com o motivo. Ninguém executa "com a autorização de antes".
+
 ## Fontes
 
 - O case da transportadora, a arquitetura e os testes de política são do curso (dados fictícios).
@@ -202,3 +243,8 @@ Cuidados:
 - Jim Gray, "The Transaction Concept: Virtues and Limitations" (VLDB, 1981): a transação como unidade que acontece
   inteira ou não acontece.
 - SQLite, "Atomic Commit In SQLite": https://www.sqlite.org/atomiccommit.html
+- OpenClaw (MIT), `src/gateway/AGENTS.md`: "HMAC verification, TTL, and matching identifiers do not establish live
+  authority" e "Identity rows record provenance only": https://github.com/openclaw/openclaw (lido no commit f46b6ead9,
+  03/10/2026).
+- W. S. McPhee, "Operating system integrity in OS/VS2", IBM Systems Journal 13(3), 1974: a corrida entre conferir e usar
+  (TOCTOU). https://doi.org/10.1147/sj.133.0230

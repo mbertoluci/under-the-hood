@@ -46,6 +46,10 @@ O código usa só a biblioteca padrão do Python, para você ver tudo o que vai 
 | `revalidar.py` | **o exercício da aula 4:** pode_executar, as três perguntas na hora do despacho |
 | `test_revalidar.py` | os 8 testes da revalidação (sem chave de API) |
 | `fim_de_tarde.py` | aula 4: a Maria autoriza às 17:00, perde o acesso às 17:30, e o despacho é às 17:40 |
+| `politica.py` | **o exercício da aula 5:** permitido e consultar, na dúvida a política nega |
+| `test_politica.py` | os 11 testes da política (sem chave de API) |
+| `versao_nova.py` | aula 5: às 17:00 o campo `carga` vira `carga_atual`; às 17:40 a política decide |
+| `rego/` | aula 5: a mesma regra em Rego, a ingênua e a correta, para rodar no OPA (opcional, com Docker) |
 | `solucao/` | uma solução de cada exercício |
 
 ## Rodar
@@ -230,6 +234,54 @@ Cuidados:
   autoridade. Validade curta ajuda; não substitui a pergunta.
 - Quando não executa, o pedido volta para a despachante com o motivo. Ninguém executa "com a autorização de antes".
 
+## Aula 5: o campo que faltou (sem chave)
+
+16:50, o despacho pergunta à política se pode trocar o motorista da C-9281, e ela diz que pode. 17:00, sai uma versão
+nova do despacho, em que o campo `carga` passa a se chamar `carga_atual`. 17:20, a qualidade bloqueia a carga: o baú
+refrigerado marcou 9 °C. 17:40, a mesma pergunta.
+
+```bash
+python3 versao_nova.py --ingenua   # a política lista o que proíbe: "permitido", numa carga bloqueada
+python3 versao_nova.py --quebra    # uma regra dá KeyError; o despacho escreve no log, segue sem ela e executa
+```
+
+Na dúvida, a política nega. Ela libera só o que consegue confirmar. O exercício são duas funções em `politica.py`:
+
+1. **O que ela não conhece, nega.** `permitido(entrada)` tem a lista do que libera, não a do que proíbe: a ação
+   conhecida, o status "liberada" e o nível 1, 2 ou 3, inteiro (em Python, `True == 1`).
+2. **O que falta, nega.** Sem a ação, a carga, o status ou o nível, não confirma. O motivo diz qual campo faltou.
+3. **O que quebra, nega.** `consultar(politica, entrada)` chama a política: erro, ou qualquer resposta que não seja o
+   `True` da própria política, vira não, com o motivo.
+
+```bash
+python3 test_politica.py                  # sem as funções: FAILED (errors=11)
+python3 test_politica.py --solucao        # a solução: 11 testes, OK
+python3 versao_nova.py --solucao          # negado: o campo carga não veio
+python3 versao_nova.py --quebra --solucao # negado: a política falhou: KeyError('carga')
+```
+
+A solução errada mais provável é a lista do que proíbe. Ela passa em 5 testes: no "tudo certo" e nos quatro do
+`consultar`. Cai em todos os de dúvida. Conferir o nível sem conferir o tipo passa em 10 e cai no `true`.
+
+O mesmo erro no OPA (opcional, precisa do Docker). A regra ingênua nega "se o status for diferente de liberada"; com o
+campo ausente, a comparação é indefinida e a regra não roda:
+
+```bash
+cd rego
+docker run --rm -v "$PWD:/rego:ro" openpolicyagent/opa:1.21.1-static eval -f raw \
+  -d /rego/ingenua.rego -i /rego/nova.json '{"nega": data.ingenua.nega, "permitido": data.ingenua.permitido}'
+# {"nega":[],"permitido":true}
+docker run --rm -v "$PWD:/rego:ro" openpolicyagent/opa:1.21.1-static eval -f raw \
+  -d /rego/correta.rego -i /rego/nova.json '{"nega": data.correta.nega, "permitido": data.correta.permitido}'
+# {"nega":["a carga não está liberada"],"permitido":false}
+```
+
+Cuidados:
+- Uma política assim vai negar coisa certa, e alguém vai reclamar. É o lado bom: o erro que nega aparece logo; o que
+  libera passa sem ninguém ver (Saltzer e Schroeder, 1975). Por isso o motivo vai sempre junto.
+- Para cada regra que lê um campo, um teste sem esse campo.
+- Fail-closed é para quem decide. O log e a métrica podem falhar sem parar a operação; a política, não.
+
 ## Fontes
 
 - O case da transportadora, a arquitetura e os testes de política são do curso (dados fictícios).
@@ -248,3 +300,11 @@ Cuidados:
   03/10/2026).
 - W. S. McPhee, "Operating system integrity in OS/VS2", IBM Systems Journal 13(3), 1974: a corrida entre conferir e usar
   (TOCTOU). https://doi.org/10.1147/sj.133.0230
+- J. H. Saltzer e M. D. Schroeder, "The Protection of Information in Computer Systems", Proceedings of the IEEE
+  63(9), 1975: "Base access decisions on permission rather than exclusion". https://www.cs.virginia.edu/~evans/cs551/saltzer/
+- Open Policy Agent, "Policy Language": "Expressions that refer to undefined values are also undefined. This includes
+  comparisons such as !=". https://www.openpolicyagent.org/docs/policy-language (rodado no OPA 1.21.1, 26/10/2026)
+- goose (Apache 2.0), `crates/goose/src/tool_inspection.rs`, linhas 111-113: "Tool inspector failed" e "Continue with
+  other inspectors even if one fails": https://github.com/aaif-goose/goose (lido no commit 591edd47c, 02/10/2026)
+- Westinghouse: patente US 88,929 (1869), o freio "straight air"; patentes US 124,404 e 124,405 (1872), o freio
+  automático. https://patents.google.com/patent/US88929A/en

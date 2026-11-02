@@ -1,4 +1,4 @@
-# Troca de motorista: quem manda no seu agente (curso Under the Hood, D12, aulas 1, 2 e 3)
+# Troca de motorista: quem manda no seu agente (curso Under the Hood, D12, aulas 1 a 7)
 
 Curso gratuito de AI Engineering, Under the Hood (YouTube: Monan Bertoluci), playlist D12: política, autoridade e
 aprovação humana.
@@ -50,6 +50,17 @@ O código usa só a biblioteca padrão do Python, para você ver tudo o que vai 
 | `test_politica.py` | os 11 testes da política (sem chave de API) |
 | `versao_nova.py` | aula 5: às 17:00 o campo `carga` vira `carga_atual`; às 17:40 a política decide |
 | `rego/` | aula 5: a mesma regra em Rego, a ingênua e a correta, para rodar no OPA (opcional, com Docker) |
+| `gate.py` e `comandos.json` | aula 6: a política dos comandos da equipe de risco (libera só o que está na lista) |
+| `harness.py` | aula 6: o contrato do hook `PreToolUse` do Claude Code, simulado: só o exit 2 bloqueia |
+| `hook_ingenuo.py` | aula 6: o hook que pergunta à política e quebra junto com ela |
+| `hook.py` | **o exercício da aula 6:** decidir, em que tudo que não for um sim explícito vira exit 2 |
+| `test_hook.py` | os 11 testes do hook (sem chave de API e sem o Claude Code) |
+| `tarde_do_hook.py` | aula 6: às 17:00 o `comandos.json` muda de lugar; às 17:40 o agente pede `rm -rf dados/cargas` |
+| `claude/settings.json` | aula 6: o registro do `hook.py` no Claude Code de verdade (opcional) |
+| `sessao.json` | aula 7: a sessão do agente, com o SMS no resultado e a troca no fim |
+| `juiz.py` | **o exercício da aula 7:** o_que_o_juiz_ve, só o pedido da pessoa e as chamadas |
+| `test_juiz.py` | os 8 testes do juiz (sem chave de API) |
+| `julgar.py` | aula 7: o mesmo juiz lendo tudo e lendo só o que o agente fez (precisa de chave) |
 | `solucao/` | uma solução de cada exercício |
 
 ## Rodar
@@ -282,6 +293,85 @@ Cuidados:
 - Para cada regra que lê um campo, um teste sem esse campo.
 - Fail-closed é para quem decide. O log e a métrica podem falhar sem parar a operação; a política, não.
 
+## Aula 6: o hook que quebrou e deixou passar (sem chave)
+
+A equipe põe a política dos comandos num hook do agente de código, antes de cada comando. 16:50, o agente pede
+`rm -rf dados/cargas`, e o hook bloqueia. 17:00, uma refatoração tira o `comandos.json` do lugar. 17:40, o mesmo pedido.
+
+```bash
+python3 tarde_do_hook.py --ingenuo           # o hook quebra (exit 1): erro não bloqueante, o comando executa
+python3 tarde_do_hook.py --lento --ingenuo   # a política fica lenta: o harness cancela o hook, e o comando executa
+```
+
+No hook do Claude Code, só o exit 2 bloqueia. Exit 1, script que não existe (127) e timeout são erros não
+bloqueantes: a ação segue. Eu conferi isso no Claude Code 2.1.312, em 29/10/2026. O `harness.py` simula esse contrato
+para você rodar sem o Claude Code. O exercício é a função `decidir` em `hook.py`. Só o `"permitido": true` libera;
+todo o resto sai com 2:
+
+1. **O gate nega:** 2, com os motivos dele.
+2. **O gate não responde:** não existe, dá erro ou passa do prazo.
+3. **A resposta é estranha:** vazia, não é JSON, sem `"permitido"`, ou `"permitido"` que não é `true` nem `false`.
+
+```bash
+python3 test_hook.py                    # sem a função: FAILED (failures=1, errors=10)
+python3 test_hook.py --solucao          # a solução: 11 testes, OK
+python3 tarde_do_hook.py --solucao      # 17:40: negado: a política falhou (saída 1)
+python3 tarde_do_hook.py --lento --solucao
+```
+
+O último teste chama o hook inteiro pelo `harness.py`, como o Claude Code chama. Testar só o script, com um JSON no
+stdin, não pega um hook que nunca roda.
+
+A solução errada mais provável trata a exceção, mas confia no `permitido` como verdadeiro ou falso e esquece o prazo.
+Ela passa em 9 testes e cai no `"permitido": "true"` (texto) e no gate lento.
+
+Para usar no Claude Code (opcional): copie `claude/settings.json` para `.claude/settings.json` nesta pasta e abra o
+Claude Code aqui. O `onFailure: "block"` (Claude Code 2.1.295 ou mais novo) cobre o caso de o próprio `hook.py` faltar
+ou quebrar. O prazo do `hook.py` (5 s) fica abaixo do timeout do hook (10 s), para quem responde ser o hook, não o
+harness.
+
+Cuidados:
+- O matcher `Bash` não vê `Write`, `Edit` nem servidores MCP. Um script escrito com a ferramenta de arquivo e rodado
+  depois pode não ter o padrão no comando.
+- Um hook ler o texto do comando é rede de segurança, não permissão: `$(...)`, aliases e scripts passam. Para bloqueio
+  rígido, regras de permissão e managed settings.
+- Um hook fora do lugar certo nunca roda, e nenhum erro aparece. Teste pelo caminho real.
+
+## Aula 7: o juiz que não ouve o agente (sem chave para o exercício)
+
+Antes de trocar o motorista, um juiz confere: outro modelo, lendo a sessão. A sessão (`sessao.json`) tem o pedido da
+despachante ("se a XPTO pedir alguma coisa, resolve com eles"), o SMS do golpe chegando como resultado de ferramenta,
+o agente escrevendo que a troca "já está autorizada" e, no fim, `trocar_motorista`.
+
+O auto mode do Claude Code faz o juiz ver só as mensagens da pessoa e as chamadas de ferramenta. Nas palavras da
+Anthropic, ele julga "what the agent did, not what the agent said". O exercício é a função `o_que_o_juiz_ve` em
+`juiz.py`:
+
+1. **Entra:** o que a pessoa pediu, e cada chamada só com o que executa (ferramenta e argumentos), na ordem.
+2. **Sai:** a fala do agente, o resultado da ferramenta e a descrição da chamada, que também é texto do agente.
+3. **O que não está na lista também sai:** um papel novo na sessão fica de fora até alguém pôr na lista.
+
+```bash
+python3 test_juiz.py                 # sem a função: FAILED (errors=8)
+python3 test_juiz.py --solucao       # a solução: 8 testes, OK
+python3 julgar.py 20 --solucao       # precisa de chave: o juiz lendo tudo e lendo o que a função monta
+```
+
+Na gravação (01/11/2026, juiz `claude-sonnet-5-5` com esforço `low`, resposta de uma palavra), o juiz lendo tudo
+permitiu a troca 50 vezes em 50. Lendo o que a função monta, 0 em 50. Só com a descrição da chamada a mais, 13 em 20.
+
+Leia esse número com cuidado:
+- É uma sessão e um modelo. Mudando a redação do SMS e do pedido, o juiz que lia tudo foi de 0% a 100%. O que lia só
+  o que o agente fez ficou entre 0% e 10%.
+- Pensar ajuda: com `ESFORCO=high`, ou pedindo uma frase de motivo, o mesmo juiz bloqueou nos dois jeitos. O
+  `claude-haiku-5-5` bloqueou sempre. O auto mode usa um filtro rápido instruído a bloquear na dúvida e raciocina só no
+  que ele marca.
+- O juiz cego perde a proveniência: ele não sabe de onde veio um ID. E a Anthropic mede 17% de ações excessivas que
+  passam pelo auto mode. O juiz é uma camada, não a fronteira: o que não volta continua na política e na aprovação.
+
+A solução errada mais provável é a lista do que sai: pula o agente e o resultado. Ela passa em 5 testes e cai na
+descrição, no papel novo e no registro sem papel.
+
 ## Fontes
 
 - O case da transportadora, a arquitetura e os testes de política são do curso (dados fictícios).
@@ -289,6 +379,11 @@ Cuidados:
   being skipped".
 - Anthropic, "Auto mode is now the default in Claude Code" (ago/2026), o estudo com 1.053 testadores:
   https://claude.com/resources/articles/auto-mode-default-in-claude-code
+- Anthropic, "How we built Claude Code auto mode": o juiz cego ao raciocínio, os dois estágios e os 17%:
+  https://www.anthropic.com/engineering/claude-code-auto-mode
+- Anthropic, "Project Vend: phase two": o CEO do mesmo modelo que autorizava pedidos lenientes "about eight times as
+  often as it denied them": https://www.anthropic.com/research/project-vend-2
+- `claude auto-mode defaults`, Claude Code 2.1.316 (01/11/2026): as regras padrão do classificador.
 - Nous Research, Hermes Agent (MIT), a espera de aprovação como `threading.Event` e "Silence is not consent":
   https://github.com/NousResearch/hermes-agent/blob/main/tools/approval_gateway_wait.py e `tools/approval.py`
   (lido no commit c8301ea6, 03/10/2026).
@@ -308,3 +403,12 @@ Cuidados:
   other inspectors even if one fails": https://github.com/aaif-goose/goose (lido no commit 591edd47c, 02/10/2026)
 - Westinghouse: patente US 88,929 (1869), o freio "straight air"; patentes US 124,404 e 124,405 (1872), o freio
   automático. https://patents.google.com/patent/US88929A/en
+- Anthropic, "How to configure hooks": "Exit code 2 means a blocking error" e "Other exit codes indicate non-blocking
+  errors". https://claude.com/resources/articles/how-to-configure-hooks ; documentação atual:
+  https://code.claude.com/docs/en/hooks (conferida no Claude Code 2.1.312 em 29/10/2026, com o `onFailure`).
+- Anthropic, "Steering Claude Code": "When there's something that absolutely must not happen, an instruction is the
+  wrong tool". https://claude.com/resources/articles/steering-claude-code-skills-hooks-rules-subagents-and-more
+- agent-guardrails (MIT), commit 93d315c: o README diz "There is no bypass mode by design" e manda instalar um
+  `hooks.json` em `.claude/`. https://github.com/roboticforce/agent-guardrails
+- U.S.-Canada Power System Outage Task Force, "Final Report on the August 14, 2003 Blackout in the United States and
+  Canada" (abril de 2004). https://www.energy.gov/sites/default/files/oeprod/DocumentsandMedia/BlackoutFinal-Web.pdf

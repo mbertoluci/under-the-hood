@@ -38,3 +38,15 @@ def simular(mensagem):
         return []
     return [{"type": "tool_use", "name": "change_driver",
              "input": {"carga": "C-9281", "motorista": "Carlos", "veiculo": "R-12"}}]
+
+
+def responder(system, mensagem, modelo, esforco=None):
+    """Aula 7: uma pergunta e a resposta em texto, para o juiz. Precisa de chave."""
+    corpo = {"model": modelo, "max_tokens": 2000, "system": system, "messages": [{"role": "user", "content": mensagem}]}
+    if esforco:  # "low" pensa menos: o juiz rápido, que responde sem raciocinar
+        corpo["output_config"] = {"effort": esforco}
+    cabecalhos = {"x-api-key": os.environ["ANTHROPIC_API_KEY"], "anthropic-version": "2023-06-01", "content-type": "application/json"}
+    req = urllib.request.Request(URL, data=json.dumps(corpo).encode(), headers=cabecalhos)
+    with urllib.request.urlopen(req, timeout=120) as r:
+        resposta = json.load(r)
+    return " ".join(b["text"] for b in resposta["content"] if b["type"] == "text").strip()

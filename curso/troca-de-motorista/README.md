@@ -725,6 +725,47 @@ Cuidados:
 - Com mais de um processo, conferir e reservar precisa ser um passo só no banco (uma transação). Aqui é um processo só.
 - Se o contador falha, a ação não sai. Um limite que libera quando está fora do ar não é limite.
 
+## Aula 15: o agente prepara, outro aplica (sem chave)
+
+Até aqui, as conferências ficavam em volta da ação. Nesta aula muda a lista do que o agente consegue chamar. A
+ferramenta dele, `preparar_troca`, só grava a mudança e devolve o número que o servidor criou (`M-1`). Aplicar é outra
+função, que não está em `FERRAMENTAS_DO_AGENTE`.
+
+`preparar`, `chamar` e `aprovar` já vêm prontas. O exercício é `aplicar(servidor, pedido)`:
+
+1. o id existe em `servidor["mudancas"]`, e a mudança está "preparada";
+2. `aprovada_por` é uma pessoa do cadastro que autoriza troca (o agente não conta);
+3. a carga, agora, ainda cabe no teto de trocas;
+4. aí sim: ponha na carga o motorista da mudança (não o do pedido), some a troca e marque a mudança como "aplicada".
+
+```bash
+python3 test_preparar.py             # sem a função: FAILED (errors=9)
+python3 test_preparar.py --solucao   # a solução: 9 testes, OK
+python3 turno.py --ingenuo           # o agente tem aplicar_troca: sai o Davi, sem aprovação
+python3 turno.py --solucao           # o agente só prepara; a Joana aprova; o servidor aplica o Carlos
+```
+
+O turno é uma simulação: as chamadas do agente estão fixas em `turno.py`, sem modelo. Ele mostra o que o sistema deixa
+acontecer, e não o que um modelo decidiu.
+
+O que é real:
+- Anthropic, "The anatomy of effective commerce agents": "No model tool call moves money or changes the business." No
+  checkout, a ferramenta desenha o carrinho com um botão, e "the backend interface the agent calls has no charge method
+  at all". No lado do lojista, toda escrita vira uma mudança preparada com id do servidor, e aplicar só funciona para
+  id aprovado numa superfície real, com os limites conferidos de novo na hora de aplicar.
+- Terraform v1.13.1, rodado em 10/11/2026: `terraform plan -out` guarda o plano; se outra operação muda o estado antes,
+  `terraform apply` com o plano guardado responde "Error: Saved plan is stale".
+
+Uma versão errada que parece certa: confere o número, a aprovação e o teto, mas aceita o motorista que vem no pedido e
+não olha o estado da mudança (não confere se ainda está "preparada" e não marca "aplicada"). Passa em 7 dos 9 testes.
+No turno, sai o Davi, que ninguém aprovou, e a carga termina com 2 trocas.
+
+Cuidados:
+- A lista só vale se não houver outro caminho. Um agente com terminal e a senha do banco aplica por fora: tirar a
+  ferramenta inclui tirar a credencial.
+- Aprovar acontece numa tela de verdade, com a pessoa logada. Texto do agente dizendo "aprovado" não é aprovação.
+- Entre preparar e aplicar, o mundo muda. Por isso `aplicar` confere o teto de agora.
+
 ## Fontes
 
 - O case da transportadora, a arquitetura e os testes de política são do curso (dados fictícios).

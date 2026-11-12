@@ -603,6 +603,48 @@ Cuidados:
 - O cartão leva o contexto: o que o agente tentou, por que subiu e o que falta para decidir.
 - Se quase tudo sobe, ninguém olha (aula 8). A rota é para a exceção, não para a rotina.
 
+## Aula 12: a regra das duas pessoas (sem chave)
+
+3h10 da madrugada. O baú da C-9281 marca 14 °C, e o agente propõe descartar a carga (D-03). Descarte não tem volta.
+Uma pessoa basta?
+
+`CHAVES` diz quantas chaves cada classe pede (troca, 1; descarte, 2). O `CADASTRO` diz quem é pessoa, quem é agente e
+o que cada um autoriza. `liberado` já vem pronta. O exercício é `chaves(acao, aprovacoes)`, o conjunto de quem aprovou
+de verdade. Uma aprovação só vale se:
+
+1. quem aprovou é pessoa do cadastro e autoriza a classe. O agente nunca é chave;
+2. aprovou o mesmo resumo da ação (aula 2);
+3. não foi quem pediu a ação.
+
+A mesma pessoa duas vezes é uma chave só.
+
+```bash
+python3 test_duas_chaves.py               # sem a função: FAILED (errors=9)
+python3 test_duas_chaves.py --solucao     # a solução: 9 testes, OK
+python3 madrugada.py --solucao            # quatro tentativas de liberar o descarte; só joana + bruna libera
+```
+
+O que é real:
+- Mísseis Minuteman: os dois oficiais conferem a ordem juntos e giram ao mesmo tempo chaves distantes demais para uma
+  pessoa só alcançar as duas (National Park Service, Minuteman Missile NHS). A Air Force Instruction 91-104 chama
+  isso de "the two-person concept".
+- Saltzer e Schroeder, 1975, "separation of privilege": "a protection mechanism that requires two keys to unlock it
+  is more robust and flexible".
+- Block: "We always leave merges to main and deploys to production up to people"; "That dual-approval layer makes it
+  impossible for an LLM to push those kinds of changes on its own". E testam se o modelo se recusa a contornar a
+  dupla aprovação.
+- FINOS AI Governance Framework, controle mi-24: no maker-checker, decide "a second principal, distinct from the
+  requester and from the agent"; em todo padrão, "the agent itself is never a valid approver", e "shared identities
+  are prohibited".
+
+A solução errada mais provável confere autoridade e resumo, mas conta aprovações, não pessoas. Ela passa em 6 testes.
+Na madrugada, libera o descarte com "agente + joana" e com "joana + joana".
+
+Cuidados:
+- Duas chaves só para o que não tem volta. Pedir duas pessoas para tudo cansa as duas (aula 8).
+- Login compartilhado é uma chave só. O "plantao" que três pessoas usam não é três chaves.
+- A segunda pessoa confere o conteúdo, não a primeira pessoa. Quem aprova porque o outro aprovou não é chave.
+
 ## Fontes
 
 - O case da transportadora, a arquitetura e os testes de política são do curso (dados fictícios).

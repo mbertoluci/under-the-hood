@@ -920,6 +920,42 @@ Cuidados:
 - A prova é do tamanho da lista de casos. Antes de tirar o juiz, pergunte que caso só ele pegaria, e ponha na lista.
 - Compensação do modelo se poda, medindo (D00.05). Trava de autoridade, quem pode o quê, não entra na faxina.
 
+## Aula 20: o conferente único (sem chave)
+
+A última aula da playlist. Peça nenhuma serve se a chamada não passa por ela. Se o conferente só embrulha a lista das
+ferramentas "perigosas", uma ferramenta nova, como `cancelar_coleta`, roda sem conferente nenhum.
+
+O exercício é `proteger(ferramentas, monitor)`, que devolve um dicionário novo em que cada ferramenta está embrulhada:
+
+1. chama `monitor(nome, args)`. Se ele negar, devolve `{"negado": motivo}` e não executa;
+2. se o monitor der erro, ou devolver outra coisa que não a tupla (True, ...) ou (False, ...), também nega;
+3. só com (True, ...) executa a ferramenta e devolve o resultado.
+
+Todas as ferramentas são embrulhadas, não só as perigosas, e o dicionário novo não muda se alguém mexer no original.
+
+```bash
+python3 test_monitor.py              # sem a função: FAILED (errors=9)
+python3 test_monitor.py --solucao    # a solução: 9 testes, OK
+python3 fecho.py --ingenuo           # só as "perigosas": 2 de 5 chamadas passam pelo conferente
+python3 fecho.py --solucao           # 5 de 5; cada negação diz de que aula é a peça
+```
+
+O fecho é uma simulação: as chamadas do agente estão fixas em `fecho.py`, sem modelo. O conferente dele usa as soluções
+das aulas 16 (origem do número), 17 (camadas) e 18 (escopo).
+
+O que é real:
+- James P. Anderson, "Computer Security Technology Planning Study" (ESD-TR-73-51, vol. II, outubro de 1972), o
+  relatório do monitor de referência: "The reference validation mechanism must be tamper proof", "must always be
+  invoked" e "must be small enough to be subject to analysis and tests to assure that it is correct".
+
+A versão do começo da aula: embrulha só o que está na lista das perigosas e, se o monitor quebra, deixa a chamada
+seguir. Passa em 5 dos 9 testes.
+
+O que fica de fora da playlist:
+- O fecho roda num processo só, em memória. A espera que sobrevive ao reinício é a aula 3; retomar uma ação que parou
+  pela metade, com efeito fora do processo, é outro assunto.
+- O conferente só vale se não houver caminho por fora: credencial, rede, terminal.
+
 ## Fontes
 
 - O case da transportadora, a arquitetura e os testes de política são do curso (dados fictícios).

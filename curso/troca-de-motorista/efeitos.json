@@ -1,0 +1,9 @@
+{
+ "ler_carga": {"volta": true, "onde": "agente", "por_que": "só lê"},
+ "escrever_rascunho": {"volta": true, "onde": "agente", "por_que": "fica na pasta do agente"},
+ "consultar_rastreador": {"volta": true, "onde": "fora", "por_que": "API de outra empresa"},
+ "reservar_veiculo": {"volta": true, "onde": "fora", "por_que": "a reserva expira em 15 min"},
+ "remarcar_doca": {"volta": true, "onde": "fora", "por_que": "dá para voltar o horário"},
+ "trocar_motorista": {"volta": false, "onde": "fora", "por_que": "o motorista novo já sai"},
+ "enviar_email_embarcador": {"volta": false, "onde": "fora", "por_que": "e-mail lido não se desmanda"}
+}

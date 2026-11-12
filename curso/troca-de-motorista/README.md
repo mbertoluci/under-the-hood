@@ -1,4 +1,4 @@
-# Troca de motorista: quem manda no seu agente (curso Under the Hood, D12, aulas 1 a 7)
+# Troca de motorista: quem manda no seu agente (curso Under the Hood, D12, aulas 1 a 20)
 
 Curso gratuito de AI Engineering, Under the Hood (YouTube: Monan Bertoluci), playlist D12: política, autoridade e
 aprovação humana.
@@ -61,6 +61,46 @@ O código usa só a biblioteca padrão do Python, para você ver tudo o que vai 
 | `juiz.py` | **o exercício da aula 7:** o_que_o_juiz_ve, só o pedido da pessoa e as chamadas |
 | `test_juiz.py` | os 8 testes do juiz (sem chave de API) |
 | `julgar.py` | aula 7: o mesmo juiz lendo tudo e lendo só o que o agente fez (precisa de chave) |
+| `efeitos.json` | aula 8: o catálogo, o que cada ação faz quando dá errado (volta? fica na área do agente?) |
+| `controle.py` | **o exercício da aula 8:** controle, que diz se a ação se confina, vai ao juiz ou vai à pessoa |
+| `test_controle.py` | os 9 testes do controle (sem chave de API) |
+| `dia_do_agente.py` | aula 8: as 300 chamadas de um dia do agente e quem confere cada uma |
+| `evidencia.py` | **o exercício da aula 9:** pode_subir, com `limite` (Clopper-Pearson) e `minimo` já prontos |
+| `test_evidencia.py` | os 9 testes da evidência (sem chave de API) |
+| `auditoria.py` | aula 9: o que a auditoria rotulou de quatro classes, e se cada uma pode subir um degrau |
+| `descida.py` | **o exercício da aula 10:** deve_descer, com `janela` já pronta |
+| `test_descida.py` | os 9 testes da descida (sem chave de API) |
+| `custo.py` | aula 10: a chance de um agente bom descer, por taxa real de erro e tamanho da janela |
+| `escalar.py` | **o exercício da aula 11:** quem_decide, a rota da decisão até a pessoa certa |
+| `test_escalar.py` | os 9 testes da rota (sem chave de API) |
+| `noite.py` | aula 11: a noite da B-17, minuto a minuto, com quem está o cartão |
+| `duas_chaves.py` | **o exercício da aula 12:** chaves, quem conta como chave numa ação sem volta |
+| `test_duas_chaves.py` | os 9 testes das duas chaves (sem chave de API) |
+| `madrugada.py` | aula 12: o descarte da C-9281 às 3h10 e quatro tentativas de liberar |
+| `concessao.py` | **o exercício da aula 13:** cobre, quando um "sempre permitir" libera uma ação sem perguntar |
+| `test_concessao.py` | os 9 testes da concessão (sem chave de API) |
+| `semana.py` | aula 13: quatro concessões e cinco pedidos do agente numa semana |
+| `limite.py` | **o exercício da aula 14:** cabe, o teto conferido sobre o total depois da ação |
+| `test_limite.py` | os 9 testes do limite (sem chave de API) |
+| `rajada.py` | aula 14: 25 avisos repetidos em 12 minutos e duas trocas no mesmo turno |
+| `preparar.py` | **o exercício da aula 15:** aplicar, que só aceita uma mudança preparada e aprovada |
+| `test_preparar.py` | os 9 testes de aplicar (sem chave de API) |
+| `turno.py` | aula 15: o turno das 17:10, simulado (chamadas fixas, sem modelo) |
+| `ids.py` | **o exercício da aula 16:** pode_usar, que só aceita número que o servidor entregou à sessão |
+| `test_ids.py` | os 9 testes de pode_usar (sem chave de API) |
+| `correio.py` | aula 16: o e-mail das 16:40, simulado (chamadas fixas, sem modelo) |
+| `camadas.py` | **o exercício da aula 17:** combinar, que junta as camadas de política sem afrouxar |
+| `test_camadas.py` | os 9 testes de combinar (sem chave de API) |
+| `tarde.py` | aula 17: a tarde da delegação, simulada (ações fixas, sem modelo) |
+| `escopo.py` | **o exercício da aula 18:** decidir, com o escopo da tarefa e a hora de parar |
+| `test_escopo.py` | os 9 testes de decidir (sem chave de API) |
+| `atrasos.py` | aula 18: os atrasos das 18:00, simulados (chamadas fixas, sem modelo) |
+| `poda.py` | **o exercício da aula 19:** pode_tirar, que roda os casos perigosos sem a trava |
+| `test_poda.py` | os 9 testes de pode_tirar (sem chave de API) |
+| `faxina.py` | aula 19: a faxina das travas, simulada (casos fixos, sem modelo) |
+| `monitor.py` | **o exercício da aula 20:** proteger, o conferente por onde toda chamada passa |
+| `test_monitor.py` | os 9 testes de proteger (sem chave de API) |
+| `fecho.py` | aula 20: seis chamadas pelo conferente, com as peças das aulas 16, 17 e 18 (simulado) |
 | `solucao/` | uma solução de cada exercício |
 
 ## Rodar
@@ -372,6 +412,55 @@ Leia esse número com cuidado:
 A solução errada mais provável é a lista do que sai: pula o agente e o resultado. Ela passa em 5 testes e cai na
 descrição, no papel novo e no registro sem papel.
 
+## Aula 8: onde pôr a pessoa (sem chave)
+
+Num dia da operação, o agente faz 300 chamadas de ferramenta: lê cargas, escreve rascunhos, consulta o rastreador,
+reserva o veículo, remarca a doca, manda e-mail ao embarcador e, três vezes, troca o motorista. Se a despachante
+aprova cada uma, são 300 cartões. A aula 2 mostrou o que acontece com aprovação em volume.
+
+```bash
+python3 dia_do_agente.py --tudo   # 300 cartões para a despachante
+```
+
+O controle não vem de a ação parecer perigosa. Vem do que acontece se ela der errado, e quem diz isso é o catálogo
+(`efeitos.json`), escrito por quem cuida da operação, nunca a proposta do agente. O exercício é a função `controle` em
+`controle.py`, com três caixas:
+
+1. **Não dá para desfazer:** vai para a **pessoa**, com a aprovação das aulas 2 a 4. Trocar o motorista, mandar o
+   e-mail.
+2. **Dá para desfazer e fica na área do agente:** se **confina**, e ninguém confere. Ler a carga, escrever um rascunho.
+3. **Dá para desfazer, mas mexe fora da área do agente:** vai para o **juiz** da aula 7. Consultar o rastreador,
+   reservar o veículo (a reserva expira), remarcar a doca.
+
+Ação fora do catálogo, campo faltando ou valor estranho vão para a pessoa. E o que a proposta diz sobre ela mesma
+("volta": true) não conta.
+
+```bash
+python3 test_controle.py               # sem a função: FAILED (errors=9)
+python3 test_controle.py --solucao     # a solução: 9 testes, OK
+python3 dia_do_agente.py --solucao     # 212 se confinam, 80 vão ao juiz, 8 à despachante
+```
+
+É o mesmo desenho do auto mode do Claude Code. Leitura passa por uma allowlist fixa. Escrita dentro do projeto passa
+sem classificador, porque "in-project edits are reviewable via version control". O resto vai ao classificador. E o
+que não volta? A Anthropic diz que o auto mode "is not a drop-in replacement for careful human review on high-stakes
+infrastructure".
+
+O dia do exemplo é inventado. A proporção real: a Anthropic olhou 998.481 chamadas de ferramenta na API, e só 0,8%
+pareciam irreversíveis, como mandar e-mail a um cliente. E, no uso interno, o sandbox do Claude Code reduziu os pedidos
+de permissão em 84%.
+
+A solução errada mais provável tem as três caixas certas e põe o "senão" no juiz. Ela passa em 6 testes e cai nos três
+de dúvida: ação fora do catálogo e campo faltando quebram a função (`KeyError`), e valor estranho vai ao juiz. No dia
+inteiro, ela para em `cancelar_coleta`. E dentro de um hook, uma exceção é exit 1, que deixa a ação seguir (aula 6).
+
+Cuidados:
+- Confinar só vale se a área do agente é de fato fechada: credencial só de leitura, escrita numa pasta ou branch que
+  alguém revisa, rede limitada. O rótulo "agente" no catálogo não fecha nada.
+- "Volta" quer dizer volta sem ninguém de fora notar. A reserva que expira volta. O e-mail lido, não. Na dúvida, o
+  catálogo diz `false`.
+- Menos cartões não deixa a pessoa atenta, só tira o motivo de clicar sem ler. O cartão continua sendo o da aula 2.
+
 ## Fontes
 
 - O case da transportadora, a arquitetura e os testes de política são do curso (dados fictícios).
@@ -384,6 +473,17 @@ descrição, no papel novo e no registro sem papel.
 - Anthropic, "Project Vend: phase two": o CEO do mesmo modelo que autorizava pedidos lenientes "about eight times as
   often as it denied them": https://www.anthropic.com/research/project-vend-2
 - `claude auto-mode defaults`, Claude Code 2.1.316 (01/11/2026): as regras padrão do classificador.
+- Anthropic, "Measuring AI agent autonomy in practice" (fev/2026): 998.481 chamadas de ferramenta, 0,8% aparentemente
+  irreversíveis: https://www.anthropic.com/research/measuring-agent-autonomy
+- Anthropic, "Making Claude Code more secure and autonomous with sandboxing": "sandboxing safely reduces permission
+  prompts by 84%": https://www.anthropic.com/engineering/claude-code-sandboxing
+- Block, "How Block orchestrates Claude Fable across thousands of pull requests": "We always leave merges to main and
+  deploys to production up to people":
+  https://claude.com/resources/articles/how-block-orchestrates-claude-fable-across-thousands-of-pull-requests
+- Uber, atualização sobre o incidente de segurança de setembro de 2022 (fadiga de MFA), citada em
+  https://www.helpnetsecurity.com/2022/09/20/uber-data-breach-lapsus/
+- The Joint Commission, Sentinel Event Alert 50 (08/04/2013), alarmes de equipamentos médicos:
+  https://digitalassets.jointcommission.org/api/public/content/f65e5c9df2b94000a99445e0a7877007
 - Nous Research, Hermes Agent (MIT), a espera de aprovação como `threading.Event` e "Silence is not consent":
   https://github.com/NousResearch/hermes-agent/blob/main/tools/approval_gateway_wait.py e `tools/approval.py`
   (lido no commit c8301ea6, 03/10/2026).
@@ -412,3 +512,45 @@ descrição, no papel novo e no registro sem papel.
   `hooks.json` em `.claude/`. https://github.com/roboticforce/agent-guardrails
 - U.S.-Canada Power System Outage Task Force, "Final Report on the August 14, 2003 Blackout in the United States and
   Canada" (abril de 2004). https://www.energy.gov/sites/default/files/oeprod/DocumentsandMedia/BlackoutFinal-Web.pdf
+- J. A. Hanley e A. Lippman-Hand, "If nothing goes wrong, is everything all right? Interpreting zero numerators",
+  JAMA 249(13):1743-1745, 1983: a regra de três. https://jamanetwork.com/journals/jama/article-abstract/389714
+- C. J. Clopper e E. S. Pearson, "The use of confidence or fiducial limits illustrated in the case of the binomial",
+  Biometrika 26(4):404-413, 1934. https://doi.org/10.2307/2331986
+- Anthropic, "Building effective human-agent teams": "grant agents autonomy in proportion to demonstrated
+  reliability": https://claude.com/resources/articles/building-effective-human-agent-teams
+- Anthropic, "A statistical approach to model evaluations": erros padrão agrupados "over three times as large as
+  naive standard errors": https://www.anthropic.com/research/statistical-approach-to-model-evals
+- Michael Albada, "Building Applications with AI Agents" (O'Reilly, 2025), cap. 3, p. 57: "after 10 successful uses in
+  manual mode".
+- Understudy, a promoção por `completeCount >= 3`: https://github.com/understudy-ai/understudy (lido no commit
+  820cac1a, 20/06/2026).
+- Anthropic, "A postmortem of three recent issues" (set/2025): "The evaluations we ran simply didn't capture the
+  degradation users were reporting": https://www.anthropic.com/engineering/a-postmortem-of-three-recent-issues
+- SEC, ordem no caso Knight Capital Americas LLC, Release 34-70694 (16/10/2013): "relied entirely on human
+  monitoring": https://www.sec.gov/litigation/admin/2013/34-70694.pdf
+- Hermes Agent (Nous Research, licença MIT): https://github.com/NousResearch/hermes-agent
+- Anthropic, "Building AI agents for financial services":
+  https://claude.com/resources/articles/building-ai-agents-in-financial-services
+- Saltzer e Schroeder, "The Protection of Information in Computer Systems" (1975):
+  https://www.cs.virginia.edu/~evans/cs551/saltzer/
+- Anthropic, "How Block orchestrates Claude Fable across thousands of pull requests":
+  https://claude.com/resources/articles/how-block-orchestrates-claude-fable-across-thousands-of-pull-requests
+- FINOS AI Governance Framework, mi-24 (CC BY 4.0): https://github.com/finos/ai-governance-framework
+- Air Force Instruction 91-104 (23/04/2013): https://fas.org/irp/doddir/usaf/afi91-104.pdf
+- Understudy (MIT), o casamento do "allow-always", `apps/cli/src/commands/gateway-exec-approvals.ts:158-184`:
+  https://github.com/understudy-ai/understudy (lido no commit 820cac1, 09/11/2026).
+- Anthropic, "How we contain Claude across products": "users approved roughly 93% of permission prompts":
+  https://www.anthropic.com/engineering/how-we-contain-claude
+- SEC, Release 34-70694 (16/10/2013), ordem no caso Knight Capital: https://www.sec.gov/litigation/admin/2013/34-70694.pdf
+- Anthropic, "The anatomy of effective commerce agents":
+  https://claude.com/resources/articles/the-anatomy-of-effective-commerce-agents
+- Terraform, `terraform plan -out` e `terraform apply`: https://developer.hashicorp.com/terraform/cli/commands/plan
+- Anthropic, "Project Vend: Can Claude run a small shop?" (27/06/2025): https://www.anthropic.com/research/project-vend-1
+- goose (Apache 2.0), `crates/goose/src/agents/platform_extensions/summon.rs:1393-1401`:
+  https://github.com/aaif-goose/goose (lido no commit 591edd4, 02/10/2026).
+- Anthropic, "Investigating unintended model actions in our evaluations and internal use" (09/10/2026):
+  https://www.anthropic.com/research/investigating-unintended-model-actions
+- N. G. Leveson e C. S. Turner, "An Investigation of the Therac-25 Accidents", IEEE Computer 26(7), 1993:
+  https://web.stanford.edu/class/cs240/old/sp2014/readings/therac-25.pdf
+- J. P. Anderson, "Computer Security Technology Planning Study", ESD-TR-73-51, vol. II, outubro de 1972:
+  https://csrc.nist.gov/csrc/media/publications/conference-paper/1998/10/08/proceedings-of-the-21st-nissc-1998/documents/early-cs-papers/ande72.pdf

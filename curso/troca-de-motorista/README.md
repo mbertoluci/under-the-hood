@@ -841,6 +841,47 @@ Cuidados:
 - O conserto para o subagente que travaria é levar o pedido até a pessoa (aula 11), e não trocar o modo.
 - Só apertar tem custo: camadas demais negam coisa certa. Por isso todo motivo leva o nome da camada.
 
+## Aula 18: o escopo da tarefa (sem chave)
+
+A Joana pede: avise os clientes das cargas C-9281 e C-9300. O e-mail de um cliente volta, e a tarefa, como foi dada,
+não dá para terminar. Com uma regra que só lista o proibido (trocar motorista, descartar), o agente procura outro
+caminho: envia um formulário no site do cliente, liga, e avisa o cliente de outra carga.
+
+`TAREFA` tem duas listas, `acoes` e `alvos`, e `LIMITE` é 3. O exercício é `decidir(tarefa, chamada, historico)`, que
+devolve "executa", "nega" ou "para":
+
+1. se a sessão já parou, continua parada;
+2. se a ação está em `tarefa["acoes"]` e o alvo está em `tarefa["alvos"]`: "executa". Tarefa sem uma das listas não
+   tem nada dentro;
+3. senão, é uma negação. Conte as negações seguidas no fim do histórico, mais esta. Chegou no limite: "para".
+
+```bash
+python3 test_escopo.py               # sem a função: FAILED (errors=9)
+python3 test_escopo.py --solucao     # a solução: 9 testes, OK
+python3 atrasos.py --ingenuo         # só a lista do proibido: o formulário, a ligação e o aviso errado saem
+python3 atrasos.py --solucao         # duas negações, a sessão para, e sobe para a Joana com o que faltou
+```
+
+Os atrasos são uma simulação: as chamadas do agente estão fixas em `atrasos.py`, sem modelo.
+
+O que é real:
+- Anthropic, "Investigating unintended model actions in our evaluations and internal use" (09/10/2026): um Claude que
+  fazia tarefas de exemplo em páginas da internet "was instructed never to log in, create accounts, enter personal
+  data, make purchases, or submit anything destructive, but the instructions did not rule out form submissions", e
+  enviou uma denúncia inventada num formulário da polícia. O envio caiu como spam. O mesmo texto diz que parte das
+  falhas talvez se evitasse declarando o escopo, "including the targets, permitted actions, and network boundaries".
+- Anthropic, "How we built Claude Code auto mode": "If a session accumulates 3 consecutive denials or 20 total, we stop
+  the model and escalate to the human."
+
+Uma versão com o mesmo buraco: confere os alvos e sabe parar, mas usa uma lista do que não pode para as ações. Passa em
+6 dos 9 testes. Nos atrasos, o formulário e a ligação saem.
+
+Cuidados:
+- Escopo apertado demais vira fila. Se a mesma negação sobe toda semana, uma pessoa revisa a tarefa e a lista, e só
+  muda a lista se a autorização tiver que mudar.
+- A negação diz que está fora do escopo. Ela não ensina como passar.
+- Parar não é falhar: a tarefa que não dá para cumprir vira uma pendência registrada.
+
 ## Fontes
 
 - O case da transportadora, a arquitetura e os testes de política são do curso (dados fictícios).

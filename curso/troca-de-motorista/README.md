@@ -686,6 +686,45 @@ Cuidados:
 - Concessão acumula. Revise, e deixe vencer as que ninguém usa. Se todo mundo clica em "sempre permitir" numa classe, o
   problema é a classe, não as pessoas.
 
+## Aula 14: o limite sobre o total (sem chave)
+
+A concessão da aula 13 libera o aviso de atraso sem perguntar. Na segunda, o agente entra num laço e repete o mesmo
+aviso para a XPTO 25 vezes em 12 minutos. Cada aviso, sozinho, está dentro da regra. E, no mesmo turno, ele propõe duas
+trocas de motorista para uma carga que já teve uma, com teto de duas.
+
+`TETOS` guarda o teto de cada classe, por chave: 2 trocas por carga, 20 avisos por cliente em 60 minutos. `minutos` e
+`pedir` já vêm prontas. `pedir` confere e reserva num passo só: se cabe, a ação entra no registro como pendente. O
+exercício é `cabe(acao, registro, agora)`:
+
+1. a classe tem teto. Sem teto, não cabe;
+2. conte no registro as da mesma classe e da mesma chave, feitas ou pendentes. Cancelada não conta;
+3. se o teto tem janela, só as dos últimos N minutos;
+4. cabe se essa conta, mais esta ação, não passa do teto.
+
+```bash
+python3 test_limite.py               # sem a função: FAILED (errors=9)
+python3 test_limite.py --solucao     # a solução: 9 testes, OK
+python3 rajada.py --solucao          # dos 25 avisos saem 20; das duas trocas, só a primeira
+```
+
+O que é real:
+- Knight Capital, 01/08/2012, ordem da SEC (Release 34-70694, 16/10/2013): 212 ordens de clientes viraram 4 milhões
+  de execuções em cerca de 45 minutos, com perda de mais de US$ 460 milhões. A firma tinha limites de posição, mas eles
+  "did not account for the firm's exposure from outstanding orders" (item 22). E não tinha "pre-set capital thresholds
+  in the aggregate for the firm that were linked to automated controls".
+- Anthropic, "The anatomy of effective commerce agents": um agente "will retry, rephrase, and parallelize in ways a
+  human clicking a button never did". A regra: "enforce every limit on the resulting state rather than the request".
+- FINOS AI Governance Framework, controle mi-24: "Aggregate limits are subject to races between concurrently pending
+  actions; enforce them with atomic reservations rather than read-then-act checks".
+
+A solução errada mais provável só conta o que já terminou e deixa de fora o que está em andamento. Ela passa em 7
+testes. Na rajada, os 25 avisos saem, e a carga termina com 3 trocas e teto 2.
+
+Cuidados:
+- O total é do dono do limite, não da conversa. O mesmo cliente pode ter duas sessões abertas, e o teto é dele.
+- Com mais de um processo, conferir e reservar precisa ser um passo só no banco (uma transação). Aqui é um processo só.
+- Se o contador falha, a ação não sai. Um limite que libera quando está fora do ar não é limite.
+
 ## Fontes
 
 - O case da transportadora, a arquitetura e os testes de política são do curso (dados fictícios).

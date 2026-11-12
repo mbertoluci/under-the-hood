@@ -562,6 +562,47 @@ Cuidados:
 - A versão 4 do case usava janelas curtas com o limite puro e derrubava a classe sem nenhum erro: zero em 120 dá
   2,47%, acima de 2%. Daí a regra 3.
 
+## Aula 11: o caminho até a pessoa certa (sem chave)
+
+A troca B-17 precisa de uma pessoa (nível 1). O pedido sai às 17:12. Para quem vai o cartão? E se ninguém responder?
+
+A decisão anda por uma **rota escrita**, por classe de ação: `ROTA["troca"]` é despachante, supervisora e gerente, com
+20, 20 e 30 minutos. A `EQUIPE` diz o papel, o plantão e o que cada pessoa autoriza; vem do cadastro, nunca do cartão.
+
+O exercício é `quem_decide(classe, inicio, agora)`, que devolve `(nome, "HH:MM")` ou `("seguro", None)`:
+
+1. Segue a rota em ordem, a partir do pedido. Cada degrau tem o seu prazo.
+2. A pessoa do degrau é a primeira com aquele papel, que autoriza a classe e está de plantão **do começo ao fim do
+   prazo**. Degrau sem ninguém assim passa direto, sem gastar tempo.
+3. Classe sem rota, ou rota que acabou: estado seguro. Nada executa, a pendência fica registrada e a equipe é avisada.
+
+```bash
+python3 test_escalar.py               # sem a função: FAILED (errors=9)
+python3 test_escalar.py --solucao     # a solução: 9 testes, OK
+python3 noite.py --solucao            # a noite da B-17: joana, bruna e, às 17:52, o estado seguro
+```
+
+O gerente sai às 18:00. O degrau dele começaria às 17:52 e venceria às 18:22, então ele não recebe o cartão.
+
+O que é real:
+- Hermes (Nous Research, MIT), o código que estudamos em outubro de 2026: quando o dono pede uma tarefa pelo Telegram
+  e o agente a delega a um subagente em segundo plano, a aprovação do subagente não chega ao celular do dono; o
+  `/approve` responde que não há nada pendente. A espera vivia numa thread presa ao turno que já tinha acabado.
+- No mesmo código, o prazo de resposta: "60s proved too tight on Telegram/Discord (the prompt expired before the user
+  reached their phone), so the default is 300". E: "Silence is not consent".
+- Anthropic, guia de agentes em serviços financeiros: caminhos claros de escalonamento e, para cada ação de alto
+  risco, como o sistema "can fail in a known safe state".
+
+A solução errada mais provável confere o plantão só na hora de mandar o cartão e, quando a rota acaba, deixa o
+cartão com o último. Ela passa em 6 testes. Na noite da B-17, manda às 17:52 ao gerente um cartão que vence às 18:22,
+e às 18:30 a decisão ainda espera por quem já foi embora.
+
+Cuidados:
+- A autoridade vem do cadastro e é conferida de novo no despacho (aula 4). Quem saiu do cargo no meio da rota não
+  aprova.
+- O cartão leva o contexto: o que o agente tentou, por que subiu e o que falta para decidir.
+- Se quase tudo sobe, ninguém olha (aula 8). A rota é para a exceção, não para a rotina.
+
 ## Fontes
 
 - O case da transportadora, a arquitetura e os testes de política são do curso (dados fictícios).

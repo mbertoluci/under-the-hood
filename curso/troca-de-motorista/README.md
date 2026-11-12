@@ -803,6 +803,44 @@ Cuidados:
 - O cartão de aprovação segue a mesma regra: recebe o número, e quem escreve o nome é o servidor.
 - Um subagente que só lê não acrescenta número ao conjunto de quem escreve.
 
+## Aula 17: camadas que só apertam (sem chave)
+
+A troca de motorista passa por três políticas: o piso da plataforma, o manual do cliente (que exige a aprovação da
+Joana) e a regra da equipe de despacho. A Joana delega os atrasos da tarde a um subagente com o perfil "rápido", que
+tenta dispensar a aprovação. Se a última camada vence, a troca sai executável sem a Joana ver.
+
+Cada camada é uma função que recebe a ação e devolve `{"nega": [...], "exige": [...]}`. O exercício é
+`combinar(acao, camadas)`:
+
+1. chame cada camada, e ponha o nome dela na frente de cada item ("manual: aprovação da Joana");
+2. se ela der erro, ou a resposta vier pela metade, isso é uma negação, também com o nome da camada;
+3. as negações se somam, e as exigências se somam. Ninguém tira o que outra pôs;
+4. sem camada nenhuma, negado;
+5. tem negação: "negado". Só exigência: "pendente". Nenhuma das duas: "executavel".
+
+```bash
+python3 test_camadas.py              # sem a função: FAILED (errors=9)
+python3 test_camadas.py --solucao    # a solução: 9 testes, OK
+python3 tarde.py --ingenuo           # a última camada vence: executável sem aprovação
+python3 tarde.py --solucao           # pendente: manual: aprovação da Joana; e a camada que quebra nega
+```
+
+A tarde é uma simulação: as ações do subagente estão fixas em `tarde.py`, sem modelo.
+
+O que é real:
+- goose (Apache 2.0), commit 591edd4: quem escolhe o modo "Ask before every tool call" tem os subagentes criados em
+  `GooseMode::Auto` ("Automatically approve tool calls"). O comentário em `summon.rs:1393-1395` explica: "Subagents
+  must use Auto until get_agent_messages forwards ActionRequired messages to the parent. Until then, any mode that
+  requires approval will hang on the subagent's confirmation_rx." Lido no código, não executado.
+
+Uma versão que soma certo e afrouxa mesmo assim: respeita a lista "dispensa" e, quando uma camada dá erro, escreve no
+log e segue. Passa em 4 dos 9 testes. Na tarde, as duas trocas saem executáveis.
+
+Cuidados:
+- Afrouxar tem um caminho só, com nome e com dono: mudar a camada que exigiu, e não empilhar outra por cima.
+- O conserto para o subagente que travaria é levar o pedido até a pessoa (aula 11), e não trocar o modo.
+- Só apertar tem custo: camadas demais negam coisa certa. Por isso todo motivo leva o nome da camada.
+
 ## Fontes
 
 - O case da transportadora, a arquitetura e os testes de política são do curso (dados fictícios).

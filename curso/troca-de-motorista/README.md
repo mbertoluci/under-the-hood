@@ -461,6 +461,57 @@ Cuidados:
   catálogo diz `false`.
 - Menos cartões não deixa a pessoa atenta, só tira o motivo de clicar sem ler. O cartão continua sendo o da aula 2.
 
+## Aula 9: quantos acertos provam alguma coisa (sem chave)
+
+A reserva do veículo vai ao juiz e a troca vai à pessoa (aula 8). Depois de mil reservas sem erro, a reserva pode
+subir um degrau, do juiz para agir e avisar? Depois de cem trocas certas, a troca pode sair da pessoa?
+
+Zero erros em n tentativas não querem dizer taxa de erro zero. Querem dizer que a taxa de erro real ainda pode ser
+qualquer coisa até um limite, e o limite de 95% é 1 - 0,05^(1/n), perto de 3/n (a regra de três). Dez acertos
+seguidos limitam o erro a 25,9%. Para ficar abaixo de 1%, são 299. Com erros no meio, a conta exata é a de
+Clopper-Pearson (1934), que `evidencia.py` já traz pronta em `limite(erros, n)`.
+
+O exercício é `pode_subir(decisoes, risco)`. Cada decisão foi rotulada por uma pessoa, e o risco tolerado da classe
+foi combinado com o negócio:
+
+1. Conte **operações**, não linhas. Decisões da mesma operação erram juntas, então a operação erra se uma decisão
+   dela errou.
+2. Conte as **falhas** junto com os acertos.
+3. Sobe só se `limite(erros, operacoes)` ficar abaixo do risco. Sem decisões, não sobe.
+
+```bash
+python3 test_evidencia.py               # sem a função: FAILED (errors=9)
+python3 test_evidencia.py --solucao     # a solução: 9 testes, OK
+python3 auditoria.py --solucao          # o rastreador sobe; a reserva, a troca e a doca ficam
+```
+
+As mil reservas vieram de só 250 operações, e o limite fica em 1,19%. A troca tem risco tolerado de 0,1%, porque não
+volta. Cem trocas certas limitam o erro a 2,95%, e para chegar a 0,1% seriam 2.995 operações sem erro. Com três
+trocas por dia, quase três anos. A conta mostra por que o que não volta fica com a pessoa.
+
+O histórico é inventado. O que é real:
+- A Anthropic diz que concede autonomia aos agentes "in proportion to demonstrated reliability", por tipo de tarefa,
+  e que é preciso "retest tasks as models change".
+- No Claude Code, quem tem menos de 50 sessões usa aprovação automática em cerca de 20% das sessões. Com 750
+  sessões, passa de 40%. A confiança sobe com o uso, não com uma conta.
+- O livro de Michael Albada sugere oferecer mais autonomia "after 10 successful uses in manual mode". Dez acertos
+  limitam o erro a 25,9%.
+- O Understudy, um agente de código aberto, promove um padrão a skill com `completeCount >= 3`, sem olhar
+  `failedCount`. Três em trinta promovem igual a três em três.
+- Em avaliações com questões agrupadas, a Anthropic mediu erros padrão agrupados mais de três vezes maiores que os
+  ingênuos. Operações são os grupos daqui.
+
+A solução errada mais provável conta linhas. Ela passa em 7 testes e cai nos dois de operações. Na auditoria, ela
+promove a reserva: mil linhas sem erro dão 0,30%, mas são só 250 operações.
+
+Cuidados:
+- O rótulo é de uma pessoa que conferiu, com desempate. A despachante que aprovou não é rótulo: ela também erra e é
+  leniente (aula 2).
+- Modelo novo é sistema novo. Trocou o modelo ou o prompt, a classe volta ao degrau de partida, ou você roda o modelo
+  novo em sombra sobre as decisões já auditadas.
+- O limite cobre a taxa média sob o tráfego auditado. Não cobre quem procura o furo e tenta de novo. Por isso a
+  política das aulas 5 e 8 continua no lugar.
+
 ## Fontes
 
 - O case da transportadora, a arquitetura e os testes de política são do curso (dados fictícios).

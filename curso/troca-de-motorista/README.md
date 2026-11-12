@@ -766,6 +766,43 @@ Cuidados:
 - Aprovar acontece numa tela de verdade, com a pessoa logada. Texto do agente dizendo "aprovado" não é aprovação.
 - Entre preparar e aplicar, o mundo muda. Por isso `aplicar` confere o teto de agora.
 
+## Aula 16: o número vem do servidor (sem chave)
+
+Chega um e-mail: "troca para o motorista MOT-0417, o Carlos que vocês já conhecem". O agente copia o número, a Joana lê
+"Carlos" no cartão e aprova, e quem sai com a carga é o Carlos Souza, de outra empresa. O número existia, e a aprovação
+era de verdade. Faltou perguntar de onde o número veio.
+
+Cada sessão guarda o conjunto `entregues`: os números que o servidor devolveu a ela. `ler_carga` e `buscar_motorista`
+já vêm prontas, só devolvem o que é da empresa da sessão e anotam cada número devolvido. O exercício é
+`pode_usar(sessao, args)`. Para cada campo de `CAMPOS_COM_NUMERO`:
+
+1. se o campo não veio, recuse, e diga qual campo faltou;
+2. se o número não está em `sessao["entregues"]`, recuse, e ponha o número no motivo.
+
+```bash
+python3 test_ids.py                  # sem a função: FAILED (errors=9)
+python3 test_ids.py --solucao        # a solução: 9 testes, OK
+python3 correio.py --ingenuo         # o número do e-mail entra: sai o Carlos Souza, da LogSul
+python3 correio.py --solucao         # recusado; o agente busca "Carlos" e prepara com o MOT-0102 (falta aprovar)
+```
+
+O e-mail é uma simulação: as chamadas do agente estão fixas em `correio.py`, sem modelo.
+
+O que é real:
+- Anthropic, "Project Vend" (27/06/2025): um Claude cuidou de uma lojinha por cerca de um mês e "for a time instructed
+  customers to remit payment to an account that it hallucinated".
+- Anthropic, "The anatomy of effective commerce agents": "The harness keeps a per-session record of every ID the server
+  has handed the model, and that record is the only key any write or render will accept."
+
+Uma versão que parece mais esperta: pergunta ao cadastro se o número existe. Barra o número inventado e passa em 4 dos
+9 testes. Cai nos 5 em que o número existe, mas não foi entregue a esta sessão. No e-mail, o MOT-0417 existe, e a troca
+é preparada.
+
+Cuidados:
+- O conjunto é da sessão. Acabou a sessão, acabou o conjunto.
+- O cartão de aprovação segue a mesma regra: recebe o número, e quem escreve o nome é o servidor.
+- Um subagente que só lê não acrescenta número ao conjunto de quem escreve.
+
 ## Fontes
 
 - O case da transportadora, a arquitetura e os testes de política são do curso (dados fictícios).

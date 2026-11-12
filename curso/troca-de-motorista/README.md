@@ -512,6 +512,56 @@ Cuidados:
 - O limite cobre a taxa média sob o tráfego auditado. Não cobre quem procura o furo e tenta de novo. Por isso a
   política das aulas 5 e 8 continua no lugar.
 
+## Aula 10: quando a ação desce (sem chave)
+
+O rastreador subiu na aula 9: 700 operações, um erro, limite de 0,68%. Agora ele age sozinho, e ninguém confere cada
+consulta. Quantos erros fazem ele descer um degrau?
+
+A regra usa a mesma conta da subida, com duas mudanças. O gatilho é o dobro do risco tolerado (2%, para um risco de
+1%), e a janela são as últimas decisões **auditadas**: uma amostra de 30 por semana, rotulada por uma pessoa. A janela
+é o menor n em que zero erros fica abaixo do gatilho, arredondado para semanas inteiras: para 1%, 149 vira 150, cinco
+semanas. `janela(risco)` já vem pronta.
+
+O exercício é `deve_descer(decisoes, risco, incidente=False)`:
+
+1. Incidente grave reportado (reclamação, erro achado na operação): desce na hora, sem conta.
+2. O denominador são as auditadas, nunca o total. Duas mil consultas na semana e 30 auditadas: n é 30. Use só as
+   últimas da janela.
+3. Desce se `limite(erros, auditadas)` passar de 2 x risco. Zero erros nunca derruba: janela curta é falta de prova,
+   não prova de erro.
+
+```bash
+python3 test_descida.py               # sem a função: FAILED (errors=9)
+python3 test_descida.py --solucao     # a solução: 9 testes, OK
+python3 custo.py --solucao            # a chance de descer, por erro real, com janela de 150 e de 300
+```
+
+Com janela de 150, **um erro só** já derruba: o limite vai a 3,12%. É de propósito, e tem preço. Um rastreador que
+erra 0,5%, metade do que o negócio aceita, desce em 53% das janelas; com 0,3%, em 36%. Afrouxar o gatilho deixaria
+passar o agente ruim. O remédio é auditar mais: com 300 auditadas no mesmo prazo, os 53% caem para 44%, e o agente que
+erra 2% desce em 98% das janelas, não em 95%.
+
+O que é real:
+- Agosto de 2025: três bugs de infraestrutura degradaram respostas do Claude. Cerca de 30% dos usuários do Claude Code
+  no período tiveram pelo menos uma mensagem mandada ao servidor errado. A Anthropic escreveu: "The evaluations we ran
+  simply didn't capture the degradation users were reporting" e "we relied too heavily on noisy evaluations". Quem
+  avisou foram as pessoas.
+- Knight Capital, 01/08/2012: em cerca de 45 minutos, 212 ordens viraram 4 milhões de execuções e uma perda de US$ 460
+  milhões. Segundo a SEC, o monitoramento de posição "relied entirely on human monitoring", e não havia limite ligado
+  a controle automático que parasse as ordens.
+
+A solução errada mais provável divide pelo total de decisões. Ela passa em 6 testes e cai nos dois do denominador e
+no do erro antigo: 2 erros em 30 auditadas, entre 2.000 consultas, dão limite de 0,31% para ela, e o rastreador fica.
+Com as 30 auditadas, o limite é 19,5%.
+
+Cuidados:
+- Descer é um degrau, não desligar. O rastreador volta ao juiz e continua trabalhando, com mais conferência, e sobe
+  de novo pela regra da aula 9.
+- Se em 90 dias a janela não enche, a amostra vira 100% das decisões. Se nem assim enche, a ação não pode ser
+  vigiada por amostra nesse risco, e não fica acima do degrau 1.
+- A versão 4 do case usava janelas curtas com o limite puro e derrubava a classe sem nenhum erro: zero em 120 dá
+  2,47%, acima de 2%. Daí a regra 3.
+
 ## Fontes
 
 - O case da transportadora, a arquitetura e os testes de política são do curso (dados fictícios).

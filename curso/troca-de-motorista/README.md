@@ -882,6 +882,44 @@ Cuidados:
 - A negação diz que está fora do escopo. Ela não ensina como passar.
 - Parar não é falhar: a tarefa que não dá para cumprir vira uma pendência registrada.
 
+## Aula 19: a trava que saiu (sem chave)
+
+A troca de motorista passa por quatro travas: a origem do número (aula 16), o teto de trocas (aula 14), um juiz
+automático (aula 7, aqui um substituto fixo) e a aprovação da Joana (aulas 2 e 15). A equipe faz uma faxina: "o juiz já
+barra troca suspeita, a aprovação é redundante". Sem a aprovação, três casos perigosos continuam barrados, e um passa:
+a troca normal, que ninguém aprovou.
+
+`TRAVAS` e `CASOS` já vêm prontos. O exercício é `pode_tirar(trava, travas, casos)`:
+
+1. se não há caso nenhum, ou a trava nem está na pilha, não pode. Sem caso, sem prova;
+2. monte a pilha sem a trava, e rode cada caso nela. O caso está seguro se alguma trava que ficou o barra. Trava que dá
+   erro não conta como barrar;
+3. junte os nomes dos casos que nenhuma trava barrou. Lista vazia: pode. Senão: não pode, com a lista.
+
+```bash
+python3 test_poda.py                 # sem a função: FAILED (errors=9)
+python3 test_poda.py --solucao       # a solução: 9 testes, OK
+python3 faxina.py --ingenuo          # tira a aprovação sem rodar nada: um caso PASSA
+python3 faxina.py --solucao          # tirar a aprovação: não pode. Tirar o juiz: pode, com os casos de hoje
+```
+
+A faxina é uma simulação: os casos estão fixos em `poda.py`, sem modelo.
+
+O que é real:
+- Leveson e Turner, "An Investigation of the Therac-25 Accidents" (IEEE Computer, 1993): entre 1985 e 1987, seis
+  acidentes com doses maciças de radiação, com mortes. Nas máquinas anteriores, "The computer merely added convenience
+  to the existing hardware", e as travas de hardware foram mantidas. No Therac-25, o fabricante "decided not to
+  duplicate all the existing hardware safety mechanisms and interlocks". Problemas relacionados foram achados depois no
+  software do Therac-20, sem feridos, porque ele tinha as travas de hardware. O recall de 1987 incluiu proteções de
+  hardware contra erros de software.
+
+Uma versão que acerta a faxina e erra a prova: com a lista de casos vazia diz que pode tirar, e conta erro de trava
+como barrar. Passa em 7 dos 9 testes.
+
+Cuidados:
+- A prova é do tamanho da lista de casos. Antes de tirar o juiz, pergunte que caso só ele pegaria, e ponha na lista.
+- Compensação do modelo se poda, medindo (D00.05). Trava de autoridade, quem pode o quê, não entra na faxina.
+
 ## Fontes
 
 - O case da transportadora, a arquitetura e os testes de política são do curso (dados fictícios).

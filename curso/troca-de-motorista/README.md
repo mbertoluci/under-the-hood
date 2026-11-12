@@ -645,6 +645,47 @@ Cuidados:
 - Login compartilhado é uma chave só. O "plantao" que três pessoas usam não é três chaves.
 - A segunda pessoa confere o conteúdo, não a primeira pessoa. Quem aprova porque o outro aprovou não é chave.
 
+## Aula 13: a aprovação permanente (sem chave)
+
+A Joana aprova aviso de atraso para cliente vinte vezes por dia. Na segunda, ela cansa e clica em "sempre permitir".
+O que esse clique pode liberar até sexta?
+
+`ACEITA_CONCESSAO` diz quais classes aceitam concessão: só `aviso`, porque a própria ferramenta limita o efeito (um
+template fixo). Troca e descarte, nunca. O `CADASTRO` é o da aula 12. `por_concessao` já vem pronta. O exercício é
+`cobre(concessao, acao, agora)`. A concessão só cobre se:
+
+1. a classe da ação aceita concessão, e é a mesma classe e a mesma ferramenta da concessão;
+2. cada argumento da concessão é igual ao da ação. Igual: um asterisco é texto, não curinga;
+3. quem concedeu é pessoa do cadastro e autoriza a classe. O agente nunca concede;
+4. não foi revogada, e agora é antes de expirar.
+
+```bash
+python3 test_concessao.py               # sem a função: FAILED (errors=9)
+python3 test_concessao.py --solucao     # a solução: 9 testes, OK
+python3 semana.py --solucao             # cinco pedidos; só o aviso de atraso de terça sai sem perguntar
+```
+
+O que é real:
+- Understudy (MIT), commit 820cac1, `apps/cli/src/commands/gateway-exec-approvals.ts:158-184`: o "allow-always" grava
+  o comando literal como padrão, e o casamento trata `*` como curinga. Quem aprova `rm build/*.log` para sempre libera
+  também `rm build/ -rf ~ ; touch x.log` (rodamos a mesma função em 09/11/2026).
+- Anthropic, "How we contain Claude across products": no Claude Code, "users approved roughly 93% of permission
+  prompts", e "The more approvals a user sees, the less attention they pay to each".
+- FINOS AI Governance Framework, controle mi-24: "Treat the Grant Itself as a Risk Acceptance"; o que separa uma
+  concessão aceitável de um portão desligado é ela ser "bounded, attributable, and made by someone entitled to make
+  it"; com terminal, HTTP ou banco, "the parameters are the action".
+
+A solução errada mais provável compara os argumentos com curinga e não pergunta se a classe aceita concessão. Ela
+passa em 7 testes. Na semana, libera o aviso com reembolso (pela concessão `atraso*` da Bruna) e a troca do Carlos
+sem perguntar a ninguém.
+
+Cuidados:
+- A concessão nunca vem do agente. Um e-mail que convence o agente a ativar "sempre permitir" vira autorização durável.
+- Cuidado com onde ela fica gravada. Concessão no arquivo do repositório vale para todo mundo que clona, e para a
+  automação também.
+- Concessão acumula. Revise, e deixe vencer as que ninguém usa. Se todo mundo clica em "sempre permitir" numa classe, o
+  problema é a classe, não as pessoas.
+
 ## Fontes
 
 - O case da transportadora, a arquitetura e os testes de política são do curso (dados fictícios).
